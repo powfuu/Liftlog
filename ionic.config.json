@@ -1,0 +1,7 @@
+{
+  "name": "Liftlog",
+  "integrations": {
+    "capacitor": {}
+  },
+  "type": "angular-standalone"
+}
