@@ -1,0 +1,18 @@
+.notch-header { display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 12px; padding: 12px 14px; border-radius: 18px; background: linear-gradient(135deg, rgba(220,38,38,0.30), rgba(255,255,255,0.12)); border: 1px solid rgba(220,38,38,0.30); box-shadow: 0 12px 28px rgba(0,0,0,0.35); margin-top: 8px; margin-bottom: 16px; }
+.notch-title { display: inline-flex; align-items: center; gap: 10px; color: #ffffff; font-weight: 700; }
+.notch-title ion-icon { color: #DC2626; }
+.notch-actions { display: inline-flex; align-items: center; gap: 8px; justify-self: end; }
+.notch-action { width: 40px; height: 40px; border-radius: 12px; display: flex; align-items: center; justify-content: center; background: var(--liftlog-gradient-primary); border: 1px solid rgba(220, 38, 38, 0.28); box-shadow: 0 12px 28px rgba(220,38,38,0.35), 0 6px 16px rgba(0,0,0,0.35); transition: transform .22s ease, box-shadow .22s ease; }
+.notch-action ion-icon { color: #ffffff; font-size: 18px; filter: drop-shadow(0 0 6px rgba(220, 38, 38, 0.45)); }
+.notch-action:hover { transform: scale(1.04); box-shadow: 0 16px 36px rgba(220,38,38,0.45), 0 8px 20px rgba(0,0,0,0.45); }
+.notch-action:active { transform: scale(0.98); }
+.brand { display: inline-flex; align-items: baseline; gap: 2px; }
+.brand-red { color: #DC2626; }
+.brand-white { color: #ffffff; }
+.notch-subtitle { color: #9ca3af; font-size: 14px; }
+.today-mark { color: #ffffff; font-weight: 700; background: rgba(220,38,38,0.18); border: 1px solid rgba(220,38,38,0.26); border-radius: 999px; padding: 2px 8px; margin-right: 6px; box-shadow: 0 0 12px rgba(220,38,38,0.18); }
+.day-label { color: #cbd5e1; }
+.subtitle-dot { display: inline-block; width: 4px; height: 4px; border-radius: 999px; background: #9ca3af; margin: 0 8px; vertical-align: middle; }
+.notch-meta { display: inline-flex; align-items: center; gap: 8px; grid-column: 1 / -1; }
+.notch-chip { display: inline-flex; align-items: center; gap: 6px; padding: 0; border-radius: 0; background: transparent; border: none; color: #cbd5e1; font-size: 12px; }
+.notch-chip ion-icon { color: #DC2626; font-size: 14px; }

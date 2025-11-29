@@ -1,0 +1,76 @@
+// Statistics page specific styles
+.statistics-page {
+  --background: #000000;
+}
+
+.filter-section {
+  background: linear-gradient(135deg, #1f2937 0%, #374151 100%);
+  border: 1px solid rgba(220, 38, 38, 0.1);
+  border-radius: 16px;
+  margin-bottom: 24px;
+}
+
+.summary-card {
+  background: linear-gradient(135deg, #1f2937 0%, #374151 100%);
+  border: 1px solid rgba(220, 38, 38, 0.1);
+  border-radius: 12px;
+  transition: all 0.3s ease;
+  
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(220, 38, 38, 0.2);
+  }
+}
+
+.chart-card {
+  background: linear-gradient(135deg, #1f2937 0%, #374151 100%);
+  border: 1px solid rgba(220, 38, 38, 0.1);
+  border-radius: 16px;
+  margin-bottom: 24px;
+}
+
+.chart-container {
+  position: relative;
+  height: 250px;
+  background: rgba(0, 0, 0, 0.3);
+  border-radius: 12px;
+  padding: 16px;
+}
+
+.segment-button {
+  --background: rgba(220, 38, 38, 0.1);
+  --background-checked: linear-gradient(135deg, #DC2626 0%, #EF4444 100%);
+  --color: #9ca3af;
+  --color-checked: #ffffff;
+  --border-radius: 8px;
+  font-weight: 600;
+  margin: 0 4px;
+}
+
+.record-item {
+  background: rgba(31, 41, 55, 0.5);
+  border: 1px solid rgba(220, 38, 38, 0.1);
+  border-radius: 12px;
+  margin-bottom: 12px;
+  transition: all 0.3s ease;
+  
+  &:hover {
+    background: rgba(55, 65, 81, 0.5);
+    border-color: rgba(220, 38, 38, 0.3);
+  }
+}
+
+.trophy-icon {
+  background: linear-gradient(135deg, #f59e0b 0%, #fbbf24 100%);
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  
+  ion-icon {
+    color: white;
+    font-size: 16px;
+  }
+}

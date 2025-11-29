@@ -1,20 +1,227 @@
-<ion-header [translucent]="true">
-  <ion-toolbar>
-    <ion-title>
-      Blank
-    </ion-title>
-  </ion-toolbar>
-</ion-header>
+<ion-content class="bg-surface">
+  <div class="page-container page-enter pb-24">
+    <app-notch-header
+      *ngIf="!showTraining"
+      [icon]="'barbell'"
+      [brandRed]="'Lift'"
+      [brandWhite]="'Log'"
+      [items]="[{icon:'list', text: routinesToday.length + ' routines'}, {icon:'barbell', text: totalExercisesToday + ' exercises'}]"
+      [subtitleLabel]="todayLabel">
+    </app-notch-header>
+    <ng-container *ngIf="!showTraining">
+    <div *ngIf="!isLoading && totalExercisesToday > 0" class="header-subtitle scheduled-subtitle subtitle-anim">
+      <ion-icon name="calendar"></ion-icon>
+      <span>Scheduled today</span>
+    </div>
 
-<ion-content [fullscreen]="true">
-  <ion-header collapse="condense">
-    <ion-toolbar>
-      <ion-title size="large">Blank</ion-title>
-    </ion-toolbar>
-  </ion-header>
+    <div *ngIf="isLoading" class="flex items-center justify-center h-64">
+      <div class="space-y-4 text-center">
+        <div class="w-12 h-12 bg-gray-800 rounded-full animate-pulse mx-auto"></div>
+        <p class="text-gray-500 text-sm">Loading...</p>
+      </div>
+    </div>
 
-  <div id="container">
-    <strong>Ready to create an app?</strong>
-    <p>Start with Ionic <a target="_blank" rel="noopener noreferrer" href="https://ionicframework.com/docs/components">UI Components</a></p>
+    <div *ngIf="!isLoading && routinesToday.length === 0" class="today-empty empty-anim">
+      <div class="empty-orb">
+        <div class="orb-glow"></div>
+        <ion-icon name="flame"></ion-icon>
+      </div>
+      <h2>Nothing scheduled today</h2>
+      <p>You don't have any workout scheduled for today.</p>
+      <div class="empty-sparkle"></div>
+    </div>
+
+    <div *ngIf="!isLoading && routinesToday.length > 0" class="routines-list">
+      <div *ngFor="let routine of routinesToday; let i = index" class="glass-card routine-card"
+        [style.animationDelay]="(i * 140) + 'ms'">
+        <div class="card-header">
+          <div class="header-text">
+            <div class="card-title">{{ routine.name }}</div>
+            <div *ngIf="routine.description" class="card-subtitle">{{ routine.description }}</div>
+          </div>
+          <div class="header-actions">
+            <button class="action-button" (click)="openPreview(routine, $event)">
+              <ion-icon name="chevron-down"></ion-icon>
+            </button>
+          </div>
+        </div>
+        <div class="card-chips">
+          <div *ngFor="let exercise of routine.exercises.slice(0,3)" class="glass-chip">
+            <span>{{ exercise.exerciseName }}</span>
+          </div>
+          <div *ngIf="routine.exercises.length > 3" class="glass-chip more">
+            <span>+{{ routine.exercises.length - 3 }}</span>
+          </div>
+        </div>
+        <div class="card-stats">
+          <div class="stat">
+            <ion-icon name="barbell"></ion-icon>
+            <span>{{ routine.exercises.length }}</span>
+          </div>
+          <div class="stat">
+            <ion-icon name="calendar"></ion-icon>
+            <span>{{ todayDateShort }}</span>
+          </div>
+          <div class="stat">
+            <ion-icon name="refresh"></ion-icon>
+            <span>{{ getDaysPerWeekLabel(routine) }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+    </ng-container>
+
+    <div *ngIf="showTraining" class="training-view" [class.view-enter]="panelState==='entering'" [class.view-exit]="panelState==='exiting'">
+      <div class="training-content">
+      <div class="training-header">
+        <div class="training-title"><ion-icon name="flame"></ion-icon><span>In progress</span></div>
+        <div class="training-timer"><span class="timer-chip">{{ formatTimer() }}</span></div>
+        <button class="finish-btn" (click)="finishTraining()">End Training</button>
+      </div>
+      <div class="training-stats">
+        <div class="stat-chip">
+          <ion-icon name="calendar"></ion-icon>
+          <span>{{ todayDateShort }}</span>
+        </div>
+        <div class="stat-chip">
+          <ion-icon name="barbell"></ion-icon>
+          <span>{{ todayExercises.length }} exercises</span>
+        </div>
+        <div class="stat-chip">
+          <ion-icon name="refresh"></ion-icon>
+          <span>{{ getTotalTargetSets() }} sets</span>
+        </div>
+      </div>
+
+      <div class="panel-body">
+        <div class="accordion-list" *ngIf="todayExercises.length > 0">
+          <div *ngFor="let exercise of todayExercises; let i = index" class="exercise-item glass-item" [attr.id]="'exercise-' + exercise.exerciseId">
+            <div class="accordion-header p-4 border-b" (click)="toggleExercise(exercise)" [attr.aria-expanded]="isExpanded(exercise)" [attr.aria-controls]="'exercise-details-' + exercise.exerciseId">
+              <div class="accordion-text">
+                <div class="accordion-title">{{ exercise.exerciseName?.trim() ? exercise.exerciseName : 'Exercise' }}</div>
+                <div class="accordion-subtitle">
+                  <span class="subtitle-label">Sets</span> <span class="subtitle-number">{{ exercise.targetSets }}</span>
+                  • <span class="subtitle-label">Reps</span> <span class="subtitle-number">{{ exercise.targetReps }}</span>
+                  • <span class="subtitle-label">Weight</span> <span class="subtitle-number">{{ exercise.weight }}</span> <span class="subtitle-number">{{ exercise.weightUnit }}</span>
+                </div>
+              </div>
+              <div class="accordion-actions">
+                <button class="accordion-toggle" aria-label="Toggle details" (click)="toggleExercise(exercise); $event.stopPropagation()">
+                  <ion-icon name="chevron-down" class="accordion-chevron" [class.expanded]="isExpanded(exercise)"></ion-icon>
+                </button>
+              </div>
+            </div>
+            <div class="accordion-details p-4 exercise-details" [class.expanded]="isExpanded(exercise)" [attr.id]="'exercise-details-' + exercise.exerciseId">
+              <div class="section-spacing flex flex-col items-center gap-4 text-center">
+                <div class="number-control">
+                  <div style="margin-top: 0px;" class="nc-label">Sets</div>
+                  <div class="nc-box">
+                    <button class="nc-btn" (click)="adjustValue(exercise, 'targetSets', -1, 1, 10)"><ion-icon name="remove"></ion-icon></button>
+                    <div class="nc-value">{{exercise.targetSets}}</div>
+                    <button class="nc-btn" (click)="adjustValue(exercise, 'targetSets', 1, 1, 10)"><ion-icon name="add"></ion-icon></button>
+                  </div>
+                </div>
+                <div class="number-control">
+                  <div class="nc-label">Reps</div>
+                  <div class="nc-box">
+                    <button class="nc-btn" (click)="adjustValue(exercise, 'targetReps', -1, 1, 50)"><ion-icon name="remove"></ion-icon></button>
+                    <div class="nc-value">{{exercise.targetReps}}</div>
+                    <button class="nc-btn" (click)="adjustValue(exercise, 'targetReps', 1, 1, 50)"><ion-icon name="add"></ion-icon></button>
+                  </div>
+                </div>
+                <div class="number-control">
+                  <div class="nc-label">Reps in Reserve (RIR)</div>
+                  <div class="nc-box">
+                    <button class="nc-btn" (click)="adjustValue(exercise, 'reserveReps', -1, 0, 10)"><ion-icon name="remove"></ion-icon></button>
+                    <div class="nc-value">{{exercise.reserveReps}}</div>
+                    <button class="nc-btn" (click)="adjustValue(exercise, 'reserveReps', 1, 0, 10)"><ion-icon name="add"></ion-icon></button>
+                  </div>
+                </div>
+                <div class="number-control">
+                  <div class="nc-label">Weight</div>
+                  <div class="nc-box">
+                    <button class="nc-btn" (click)="adjustValue(exercise, 'weight', exercise.weightUnit==='kg' ? -1 : -2, 0, 1000)"><ion-icon name="remove"></ion-icon></button>
+                    <div class="nc-value nc-value-combo">
+                      <input type="number" [(ngModel)]="exercise.weight" min="0" step="0.1" class="nc-input" (change)="persistExercise(exercise)" />
+                      <span class="nc-unit">{{exercise.weightUnit}}</span>
+                    </div>
+                    <button class="nc-btn" (click)="adjustValue(exercise, 'weight', exercise.weightUnit==='kg' ? 1 : 2, 0, 1000)"><ion-icon name="add"></ion-icon></button>
+                  </div>
+                </div>
+                <div class="unit-chips flex flex-col items-center gap-2">
+                  <button class="unit-chip" [class.selected]="exercise.weightUnit==='lbs'" (click)="setUnit(exercise,'lbs')">lbs</button>
+                  <button class="unit-chip" [class.selected]="exercise.weightUnit==='kg'" (click)="setUnit(exercise,'kg')">kg</button>
+                </div>
+              </div>
+              <div class="notes-section section-spacing">
+                <label class="text-gray-400 text-xs">Notes (Optional)</label>
+                <div class="notes-box">
+                  <textarea [(ngModel)]="exercise.notes" placeholder="How did it feel? Any cues or adjustments?" rows="3" class="notes-textarea" (change)="persistExercise(exercise)"></textarea>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      </div>
+    </div>
   </div>
+  <div *ngIf="!showTraining && !isLoading && routinesToday.length === 0" class="start-day-alert subtitle-anim">
+    <ion-icon name="information-circle"></ion-icon>
+    <span>No routine assigned for today. <span class="create-link" (click)="navigateToRoutines()">Create it now!</span></span>
+  </div>
+  <button *ngIf="!showTraining" class="start-day-fab" [disabled]="routinesToday.length === 0" (click)="openTrainingDay()">
+    <ion-icon name="flame"></ion-icon>
+    <span>Start new training day</span>
+  </button>
+  <ion-modal [isOpen]="showPreview" class="preview-modal" (didDismiss)="closePreview()" initialBreakpoint="0.8"
+    [breakpoints]="[0.6, 0.8, 1]" backdropDismiss="true">
+    <ng-template>
+      <div class="preview-container">
+        <div class="preview-hero">
+          <div class="preview-title">
+            <ion-icon name="list" class="preview-icon"></ion-icon>
+            <span>{{ previewRoutine?.name }}</span>
+          </div>
+          <button class="preview-close" (click)="closePreview()"><ion-icon name="close"></ion-icon></button>
+        </div>
+        <div class="preview-meta-box">
+          <div class="preview-meta">
+            <div class="meta-item">
+              <ion-icon name="calendar"></ion-icon>
+              <span>{{ todayDateStr }}</span>
+            </div>
+            <div class="meta-item">
+              <ion-icon name="barbell"></ion-icon>
+              <span>{{ previewRoutine?.exercises?.length || 0 }}</span>
+            </div>
+            <div class="meta-item" *ngIf="previewRoutine?.days?.length">
+              <ion-icon name="information-circle"></ion-icon>
+              <span>{{ previewRoutine?.days?.join(', ') }}</span>
+            </div>
+          </div>
+        </div>
+        <div class="preview-body">
+          <div class="preview-chips">
+            <div *ngFor="let exercise of (previewRoutine?.exercises || []).slice(0,3)" class="glass-chip">
+              <span>{{ exercise.exerciseName }}</span>
+            </div>
+            <div *ngIf="(previewRoutine?.exercises?.length || 0) > 3" class="glass-chip more">
+              <span>+{{ (previewRoutine?.exercises?.length || 0) - 3 }}</span>
+            </div>
+          </div>
+          <div class="preview-rows">
+            <div *ngFor="let exercise of (previewRoutine?.exercises || [])" class="preview-row">
+              <div class="pr-title">{{ exercise.exerciseName }}</div>
+              <div class="pr-sub">
+                <span>Sets {{ exercise.targetSets }}</span>
+                <span>• Reps {{ exercise.targetReps }}</span>
+                <span>• Weight {{ exercise.weight }} {{ exercise.weightUnit }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </ng-template>
+  </ion-modal>
 </ion-content>

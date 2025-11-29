@@ -1,0 +1,226 @@
+<div class="modal-container" [class]="'animation-' + animationState">
+  <div class="sticky top-0 z-50 modal-header">
+    <div class="px-6 py-4">
+      <div class="modal-notch">
+        <div class="notch-title">
+          <ion-icon name="list" class="modal-title-icon"></ion-icon>
+          <span>{{ routineName?.trim() ? routineName : 'New routine' }}</span>
+        </div>
+        <div class="notch-center" role="tablist" aria-label="Routine tabs">
+          <button
+            class="notch-tab"
+            [class.selected]="activeTab === 'exercises'"
+            role="tab"
+            [attr.aria-selected]="activeTab === 'exercises'"
+            (click)="setTab('exercises')"
+            aria-label="Exercises">
+            <ion-icon name="barbell"></ion-icon>
+          </button>
+          <button
+            class="notch-tab"
+            [class.selected]="activeTab === 'info'"
+            role="tab"
+            [attr.aria-selected]="activeTab === 'info'"
+            (click)="setTab('info')"
+            aria-label="Information">
+            <ion-icon name="information-circle"></ion-icon>
+          </button>
+        </div>
+        <div class="notch-actions">
+          <button class="notch-action" (click)="dismiss()" aria-label="Close modal">
+            <ion-icon name="close"></ion-icon>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Content -->
+  <div class="modal-body modal-enter">
+    <!-- Routine Info Section -->
+    <div class="modal-card tab-enter tab-surface" *ngIf="activeTab === 'info'" [class.tab-slide-left]="tabTransition==='left'" [class.tab-slide-right]="tabTransition==='right'">
+      <div class="modal-card-header">
+        <div class="modal-card-title" style="margin-bottom: 10px;">
+          <ion-icon name="create"></ion-icon>
+          <span>Routine Information</span>
+        </div>
+      </div>
+      <div class="modal-card-content content-surface">
+        <div class="form-group">
+          <label>Routine Name</label>
+          <input
+            type="text"
+            [(ngModel)]="routineName"
+            placeholder="Enter routine name"
+            maxlength="50">
+          <div class="helper">{{ routineName.length }}/50</div>
+        </div>
+        <div class="form-group">
+          <label>Description (Optional)</label>
+          <textarea
+            [(ngModel)]="routineDescription"
+            placeholder="Add a description..."
+            rows="3"
+            maxlength="200"></textarea>
+          <div class="helper">{{ routineDescription.length }}/200</div>
+        </div>
+        <div class="form-group">
+          <label class="days-label" style="margin-bottom: 8px;">Routine Days</label>
+          <div class="days-selector" role="group" aria-label="Select days">
+            <button
+              *ngFor="let day of daysOptions"
+              type="button"
+              class="day-chip"
+              [class.selected]="selectedDays.includes(day)"
+              (click)="toggleDay(day)"
+              [attr.aria-pressed]="selectedDays.includes(day)"
+            >
+              {{ day }}
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Exercises Section -->
+    <div class="modal-card space-y-4 tab-enter tab-surface" *ngIf="activeTab === 'exercises'" [class.tab-slide-left]="tabTransition==='left'" [class.tab-slide-right]="tabTransition==='right'">
+      <div class="modal-card-header">
+        <div class="modal-card-title">
+          <ion-icon name="barbell"></ion-icon>
+          <span>Exercises</span>
+        </div>
+        <button (click)="openAddForm()" class="modal-add-btn" aria-label="Add exercise">
+          <ion-icon name="add"></ion-icon>
+          <span>Add exercise</span>
+        </button>
+      </div>
+
+      <!-- Instant creation: exercise appears directly in the list -->
+
+      <!-- Exercise List -->
+      <div class="accordion-list content-surface" *ngIf="exercises.length > 0">
+        <div
+          *ngFor="let exercise of exercises; let i = index"
+          class="exercise-item glass-item"
+          [class.slide-in]="animationState === 'entered'"
+          [attr.id]="'exercise-' + exercise.exerciseId">
+
+          <!-- Exercise Accordion Header -->
+          <div
+            class="accordion-header p-4 border-b"
+            (click)="toggleExercise(exercise)"
+            [attr.aria-expanded]="isExpanded(exercise)"
+            [attr.aria-controls]="'exercise-details-' + exercise.exerciseId">
+            <div class="accordion-text">
+              <div class="accordion-title">
+                {{ exercise.exerciseName?.trim() ? exercise.exerciseName : 'Exercise name' }}
+              </div>
+              <div class="accordion-subtitle" aria-label="Exercise summary">
+                <span class="subtitle-label">Sets</span> <span class="subtitle-number">{{ exercise.targetSets }}</span>
+                • <span class="subtitle-label">Reps</span> <span class="subtitle-number">{{ exercise.targetReps }}</span>
+                • <span class="subtitle-label">Weight</span> <span class="subtitle-number">{{ exercise.weight }}</span> <span class="subtitle-number">{{ exercise.weightUnit }}</span>
+              </div>
+            </div>
+            <div class="accordion-actions">
+              <button (click)="removeExercise(i); $event.stopPropagation()" class="exercise-trash-btn" aria-label="Remove exercise">
+                <ion-icon name="trash"></ion-icon>
+              </button>
+              <button class="accordion-toggle" aria-label="Toggle details" (click)="toggleExercise(exercise); $event.stopPropagation()">
+                <ion-icon name="chevron-down" class="accordion-chevron" [class.expanded]="isExpanded(exercise)"></ion-icon>
+              </button>
+            </div>
+          </div>
+
+          <!-- Exercise Details -->
+          <div
+            class="accordion-details p-4 exercise-details"
+            [class.expanded]="isExpanded(exercise)"
+            [attr.id]="'exercise-details-' + exercise.exerciseId">
+            <div class="exercise-name-input-wrap">
+              <input
+                type="text"
+                [(ngModel)]="exercise.exerciseName"
+                placeholder="Exercise name"
+                class="exercise-name-input">
+            </div>
+            <!-- Creative number controls -->
+            <div class="section-spacing flex flex-col items-center gap-4 text-center">
+              <div class="number-control">
+                <div class="nc-label">Sets</div>
+                <div class="nc-box">
+                  <button class="nc-btn" (click)="adjustValue(exercise, 'targetSets', -1, 1, 10)"><ion-icon name="remove"></ion-icon></button>
+                  <div class="nc-value">{{exercise.targetSets}}</div>
+                  <button class="nc-btn" (click)="adjustValue(exercise, 'targetSets', 1, 1, 10)"><ion-icon name="add"></ion-icon></button>
+                </div>
+              </div>
+              <div class="number-control">
+                <div class="nc-label">Reps</div>
+                <div class="nc-box">
+                  <button class="nc-btn" (click)="adjustValue(exercise, 'targetReps', -1, 1, 50)"><ion-icon name="remove"></ion-icon></button>
+                  <div class="nc-value">{{exercise.targetReps}}</div>
+                  <button class="nc-btn" (click)="adjustValue(exercise, 'targetReps', 1, 1, 50)"><ion-icon name="add"></ion-icon></button>
+                </div>
+              </div>
+              <div style="margin-bottom: -14px;" class="number-control">
+                <div class="nc-label">Reps in Reserve (RIR)</div>
+                <div class="nc-box">
+                  <button class="nc-btn" (click)="adjustValue(exercise, 'reserveReps', -1, 0, 10)"><ion-icon name="remove"></ion-icon></button>
+                  <div class="nc-value">{{exercise.reserveReps}}</div>
+                  <button class="nc-btn" (click)="adjustValue(exercise, 'reserveReps', 1, 0, 10)"><ion-icon name="add"></ion-icon></button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Weight and Unit with chips -->
+            <div class="section-spacing flex flex-col items-center gap-4 text-center">
+              <div class="number-control wide">
+                <div class="nc-label">Weight</div>
+                <div class="nc-box">
+                  <button class="nc-btn" (click)="adjustValue(exercise, 'weight', exercise.weightUnit==='kg' ? -1 : -2, 0, 1000)"><ion-icon name="remove"></ion-icon></button>
+                  <div class="nc-value nc-value-combo">
+                    <input type="number" [(ngModel)]="exercise.weight" min="0" step="0.1" class="nc-input"/>
+                    <span class="nc-unit">{{exercise.weightUnit}}</span>
+                  </div>
+                  <button class="nc-btn" (click)="adjustValue(exercise, 'weight', exercise.weightUnit==='kg' ? 1 : 2, 0, 1000)"><ion-icon name="add"></ion-icon></button>
+                </div>
+              </div>
+              <div class="unit-chips flex flex-col items-center gap-2">
+                <button class="unit-chip" [class.selected]="exercise.weightUnit==='lbs'" (click)="exercise.weightUnit='lbs'">lbs</button>
+                <button class="unit-chip" [class.selected]="exercise.weightUnit==='kg'" (click)="exercise.weightUnit='kg'">kg</button>
+              </div>
+            </div>
+
+            <!-- Notes (Optional) -->
+            <div class="notes-section section-spacing">
+              <label class="text-gray-400 text-xs">Notes (Optional)</label>
+              <div class="notes-box">
+                <textarea
+                  [(ngModel)]="exercise.notes"
+                  placeholder="How did it feel? Any cues or adjustments?"
+                  rows="3"
+                  class="notes-textarea"></textarea>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Empty State -->
+      <div *ngIf="exercises.length === 0" class="content-surface empty-center">
+        <div class="modal-empty-glass">
+          <div class="modal-empty-icon">
+            <ion-icon name="barbell"></ion-icon>
+          </div>
+          <h3>No exercises added yet</h3>
+          <p>Use the “Add exercise” button above to start.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<button
+  class="save-fab"
+  aria-label="Save routine"
+  (click)="saveRoutine()">
+  <ion-icon name="save"></ion-icon>
+</button>

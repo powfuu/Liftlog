@@ -1,0 +1,68 @@
+// Exercise log page specific styles
+.exercise-log-page {
+  --background: #000000;
+}
+
+.exercise-item {
+  background: linear-gradient(135deg, #1f2937 0%, #374151 100%);
+  border: 1px solid rgba(220, 38, 38, 0.1);
+  border-radius: 12px;
+  margin-bottom: 12px;
+  transition: all 0.3s ease;
+  
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(220, 38, 38, 0.2);
+  }
+}
+
+.set-card {
+  background: linear-gradient(135deg, #1f2937 0%, #374151 100%);
+  border: 1px solid rgba(220, 38, 38, 0.1);
+  border-radius: 12px;
+  margin-bottom: 12px;
+}
+
+.weight-unit-toggle {
+  --background: linear-gradient(135deg, #1f2937 0%, #374151 100%);
+  --border: 1px solid rgba(220, 38, 38, 0.3);
+  --color: #DC2626;
+  --border-radius: 12px;
+  font-weight: 600;
+  
+  &:hover {
+    --background: linear-gradient(135deg, #374151 0%, #4b5563 100%);
+  }
+}
+
+.input-group {
+  display: flex;
+  gap: 16px;
+  
+  .input-wrapper {
+    flex: 1;
+  }
+}
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+  text-align: center;
+}
+
+.exercise-icon {
+  width: 48px;
+  height: 48px;
+  background: linear-gradient(135deg, #DC2626 0%, #EF4444 100%);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 16px;
+  
+  ion-icon {
+    font-size: 24px;
+    color: white;
+  }
+}

@@ -1,0 +1,94 @@
+<ion-content class="bg-surface">
+  <div class="page-container page-enter pt-12 pb-24">
+    <app-notch-header
+      [title]="'Routines'"
+      [icon]="'list'"
+      [actionIcon]="'add'"
+      (action)="createRoutine()">
+    </app-notch-header>
+    <div *ngIf="!isLoading" class="header-subtitle">
+      <ion-icon name="list"></ion-icon>
+      <span>{{ routines.length }} routines</span>
+      <span>•</span>
+      <ion-icon name="barbell"></ion-icon>
+      <span>{{ getTotalExerciseCount() }} exercises</span>
+    </div>
+
+    <!-- Loading State -->
+    <div *ngIf="isLoading" class="flex items-center justify-center h-64">
+      <div class="space-y-4 text-center">
+        <div class="w-12 h-12 bg-gray-800 rounded-full animate-pulse mx-auto"></div>
+        <p class="text-gray-500 text-sm">Loading routines...</p>
+      </div>
+    </div>
+
+    <div *ngIf="!isLoading && routines.length === 0" class="empty-glass empty-anim">
+      <div class="empty-icon">
+        <ion-icon name="list"></ion-icon>
+      </div>
+      <h2>No routines yet</h2>
+      <p>Create your first routine to start building your perfect workout.</p>
+      <div class="empty-action" (click)="createRoutine()">Create it now!</div>
+    </div>
+
+    <div *ngIf="!isLoading && routines.length > 0" class="routines-list">
+      <div
+        *ngFor="let routine of routines; let i = index"
+        (click)="editRoutine(routine)"
+        class="glass-card routine-card"
+        [class.card-initial]="initialAnimation"
+        [class.card-enter]="enteringId === routine.id"
+        [class.card-exit]="removingId === routine.id"
+        [style.animationDelay]="(i * 160) + 'ms'"
+        (animationend)="onCardAnimationEnd(routine)"
+        >
+
+        <!-- Routine Header -->
+        <div class="card-header">
+          <div class="header-text">
+            <div class="card-title">{{ routine.name }}</div>
+            <div *ngIf="routine.description" class="card-subtitle">{{ routine.description }}</div>
+          </div>
+          <div class="header-actions">
+            <button class="action-button" (click)="$event.stopPropagation(); editRoutine(routine)">
+              <ion-icon name="chevron-forward"></ion-icon>
+            </button>
+            <button class="action-button danger" (click)="onDeleteRoutine(routine, $event)">
+              <ion-icon name="trash"></ion-icon>
+            </button>
+          </div>
+        </div>
+
+        <!-- Exercise Preview -->
+        <div class="card-chips">
+          <div
+            *ngFor="let exercise of routine.exercises.slice(0, 3)"
+            class="glass-chip">
+            <span>{{ exercise.exerciseName }}</span>
+          </div>
+          <div
+            *ngIf="routine.exercises.length > 3"
+            class="glass-chip more">
+            <span>+{{ routine.exercises.length - 3 }}</span>
+          </div>
+        </div>
+
+        <!-- Stats -->
+        <div class="card-stats">
+          <div class="stat">
+            <ion-icon name="barbell"></ion-icon>
+            <span class="stat-text">{{ getTotalExercises(routine) }}</span>
+          </div>
+          <div class="stat">
+            <ion-icon name="calendar"></ion-icon>
+            <span class="stat-text">{{ todayDateShort }}</span>
+          </div>
+          <div class="stat">
+            <ion-icon name="refresh"></ion-icon>
+            <span class="stat-text">{{ getScheduleLabel(routine) }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</ion-content>

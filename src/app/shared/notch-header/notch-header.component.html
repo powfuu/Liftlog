@@ -1,0 +1,25 @@
+<div class="notch-header">
+  <div class="notch-title">
+    <ion-icon *ngIf="icon" [name]="icon"></ion-icon>
+    <ng-container *ngIf="brandRed && brandWhite; else plainTitle">
+      <span class="brand"><span class="brand-red">{{ brandRed }}</span><span class="brand-white">{{ brandWhite }}</span></span>
+    </ng-container>
+    <ng-template #plainTitle>
+      <span>{{ title }}</span>
+    </ng-template>
+  </div>
+  <div class="notch-actions" *ngIf="actionIcon">
+    <button class="notch-action" (click)="action.emit()">
+      <ion-icon [name]="actionIcon"></ion-icon>
+    </button>
+  </div>
+  <div class="notch-subtitle" *ngIf="subtitleLabel">
+    <span class="today-mark">Today</span><span class="subtitle-dot"></span><span class="day-label">{{ subtitleLabel }}</span>
+  </div>
+  <div class="notch-meta" *ngIf="items && items.length">
+    <div class="notch-chip" *ngFor="let it of items">
+      <ion-icon *ngIf="it.icon" [name]="it.icon"></ion-icon>
+      <span>{{ it.text }}</span>
+    </div>
+  </div>
+</div>

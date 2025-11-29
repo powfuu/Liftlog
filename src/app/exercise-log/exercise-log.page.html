@@ -1,0 +1,166 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/"></ion-back-button>
+    </ion-buttons>
+    <ion-title>Log Exercise</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="bg-surface">
+  <div class="px-4 py-4">
+    <app-notch-header
+      [title]="'Log Exercise'"
+      [icon]="'barbell'"
+      [items]="selectedExercise ? [{icon:'information-circle', text: selectedExercise.name}] : [{icon:'information-circle', text: 'Select exercise'}]">
+    </app-notch-header>
+  </div>
+  <!-- Exercise Selection -->
+  <div class="px-4 py-6 fade-in-up" *ngIf="!selectedExercise">
+    <h2 class="text-xl font-bold text-white mb-6">Select Exercise</h2>
+    
+    <ion-list class="bg-transparent">
+      <ion-item *ngFor="let exercise of (exercises$ | async)" 
+                class="liftlog-card mb-3 cursor-pointer hover:bg-gray-800 transition-colors"
+                (click)="onExerciseSelect(exercise)">
+        <div class="flex items-center w-full py-3">
+          <div class="w-12 h-12 bg-gradient-to-r from-red-600 to-red-500 rounded-full flex items-center justify-center mr-4">
+            <ion-icon [name]="getMuscleGroupIcon(exercise.muscleGroup)" class="text-white text-xl"></ion-icon>
+          </div>
+          <div class="flex-1">
+            <h3 class="text-white font-semibold text-lg">{{exercise.name}}</h3>
+            <div class="flex items-center space-x-2 mt-1">
+              <ion-chip color="primary" class="text-xs h-6">{{exercise.muscleGroup}}</ion-chip>
+              <ion-chip color="medium" class="text-xs h-6">{{exercise.equipment}}</ion-chip>
+            </div>
+          </div>
+          <ion-icon name="chevron-forward" class="text-gray-400"></ion-icon>
+        </div>
+      </ion-item>
+    </ion-list>
+  </div>
+
+  <!-- Exercise Logging Form -->
+  <div class="px-4 py-6 fade-in-up" *ngIf="selectedExercise">
+    <div class="flex items-center justify-between mb-6">
+      <div class="flex items-center">
+        <div class="w-12 h-12 bg-gradient-to-r from-red-600 to-red-500 rounded-full flex items-center justify-center mr-4">
+          <ion-icon [name]="getMuscleGroupIcon(selectedExercise.muscleGroup)" class="text-white text-xl"></ion-icon>
+        </div>
+        <div>
+          <h2 class="text-xl font-bold text-white">{{selectedExercise.name}}</h2>
+          <p class="text-gray-400">{{selectedExercise.muscleGroup}} • {{selectedExercise.equipment}}</p>
+        </div>
+      </div>
+      <ion-button fill="clear" size="small" (click)="selectedExercise = null" class="text-gray-400">
+        <ion-icon name="close" slot="icon-only"></ion-icon>
+      </ion-button>
+    </div>
+
+    <!-- Weight Unit Toggle -->
+    <div class="flex justify-center mb-6">
+      <ion-button (click)="toggleWeightUnit()" class="liftlog-button-secondary">
+        <ion-icon name="swap-vertical" slot="start"></ion-icon>
+        Switch to {{weightUnit === 'lbs' ? 'KG' : 'LBS'}}
+      </ion-button>
+    </div>
+
+    <!-- Sets Management -->
+    <div class="mb-6">
+      <div class="flex items-center justify-between mb-4">
+        <h3 class="text-lg font-semibold text-white">Sets</h3>
+        <span class="text-gray-400">Current unit: {{weightUnit.toUpperCase()}}</span>
+      </div>
+
+      <div class="space-y-3">
+        <ion-card *ngFor="let set of sets; let i = index" class="liftlog-card">
+          <ion-card-content class="p-4">
+            <div class="flex items-center justify-between mb-3">
+              <span class="text-white font-medium">Set {{i + 1}}</span>
+              <ion-button *ngIf="sets.length > 1" fill="clear" size="small" (click)="removeSet(i)" class="text-gray-400">
+                <ion-icon name="remove" slot="icon-only"></ion-icon>
+              </ion-button>
+            </div>
+            
+            <div class="grid grid-cols-2 gap-4">
+              <div>
+                <ion-label class="text-gray-400 text-sm mb-2 block">Reps</ion-label>
+                <ion-input 
+                  type="number" 
+                  [(ngModel)]="set.reps" 
+                  (ionChange)="updateSetReps(i, set.reps)"
+                  class="liftlog-input text-center"
+                  placeholder="0">
+                </ion-input>
+              </div>
+              <div>
+                <ion-label class="text-gray-400 text-sm mb-2 block">Weight ({{weightUnit.toUpperCase()}})</ion-label>
+                <ion-input 
+                  type="number" 
+                  [(ngModel)]="set.weight" 
+                  (ionChange)="updateSetWeight(i, set.weight)"
+                  class="liftlog-input text-center"
+                  placeholder="0">
+                </ion-input>
+              </div>
+            </div>
+          </ion-card-content>
+        </ion-card>
+      </div>
+
+      <div class="flex justify-center mt-4">
+        <ion-button (click)="addSet()" class="liftlog-button-secondary">
+          <ion-icon name="add" slot="start"></ion-icon>
+          Add Set
+        </ion-button>
+      </div>
+    </div>
+
+    <!-- Notes -->
+    <div class="mb-6">
+      <ion-label class="text-white font-medium mb-3 block">Notes (Optional)</ion-label>
+      <ion-textarea 
+        [(ngModel)]="notes" 
+        placeholder="How did you feel? Any observations?"
+        rows="3"
+        class="liftlog-input">
+      </ion-textarea>
+    </div>
+
+    <!-- Save Button -->
+    <div class="mb-6">
+      <ion-button 
+        expand="block" 
+        (click)="saveLog()" 
+        [disabled]="!selectedExercise || sets.length === 0 || isLoading"
+        class="liftlog-button-primary h-14">
+        <ion-icon name="checkmark" slot="start"></ion-icon>
+        {{isLoading ? 'Saving...' : 'Save Exercise'}}
+      </ion-button>
+    </div>
+
+    <!-- Quick Stats -->
+    <ion-card class="liftlog-card" *ngIf="sets.length > 0">
+      <ion-card-content class="p-4">
+        <div class="grid grid-cols-3 gap-4 text-center">
+          <div>
+            <div class="text-2xl font-bold text-gradient-primary">{{sets.length}}</div>
+            <div class="text-gray-400 text-sm">Total Sets</div>
+          </div>
+          <div>
+            <div class="text-2xl font-bold text-gradient-primary">
+              {{getTotalReps()}}
+            </div>
+            <div class="text-gray-400 text-sm">Total Reps</div>
+          </div>
+          <div>
+            <div class="text-2xl font-bold text-gradient-primary">
+              {{getTotalVolume() | number:'1.0-0'}}
+            </div>
+            <div class="text-gray-400 text-sm">Total Volume</div>
+          </div>
+        </div>
+      </ion-card-content>
+    </ion-card>
+  </div>
+</ion-content>
