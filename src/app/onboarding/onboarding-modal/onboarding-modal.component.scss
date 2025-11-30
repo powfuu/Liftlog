@@ -14,7 +14,6 @@
 }
 .aurora {
   position: absolute;
-  filter: blur(60px);
   opacity: 0.15;
   animation: auroraFlow 14s ease-in-out infinite;
 }
@@ -417,7 +416,6 @@
   border: 1px solid rgba(255, 255, 255, 0.35);
   box-shadow: 0 12px 30px rgba(0, 0, 0, 0.4),
     0 0 0 8px rgba(255, 255, 255, 0.16);
-  backdrop-filter: blur(6px) saturate(110%);
   animation: prevGlow 2s ease-in-out infinite;
 }
 .bottom-cta .nav-btn.next {
@@ -426,7 +424,6 @@
   border: 1px solid rgba(255, 255, 255, 0.28);
   box-shadow: 0 12px 30px rgba(220, 38, 38, 0.4),
     0 0 0 8px rgba(220, 38, 38, 0.18);
-  backdrop-filter: blur(6px) saturate(110%);
   animation: nextGlow 2s ease-in-out infinite;
 }
 .start-btn {
@@ -441,7 +438,6 @@
   box-shadow: 0 12px 30px rgba(220, 38, 38, 0.4),
     0 0 0 8px rgba(220, 38, 38, 0.18);
     margin-top: 10px;
-  backdrop-filter: blur(6px) saturate(110%);
   font-weight: 800;
   animation: nextGlow 2s ease-in-out infinite;
 }
@@ -530,8 +526,6 @@
   position: absolute;
   inset: 0;
   background: rgba(0, 0, 0, 0.45);
-  backdrop-filter: blur(18px) saturate(115%);
-  -webkit-backdrop-filter: blur(18px) saturate(115%);
   border-radius: inherit;
   pointer-events: none;
 }
@@ -793,7 +787,6 @@
   inset: 0;
   background-size: cover;
   background-position: center;
-  filter: blur(22px) brightness(0.85);
   transform: scale(1.08);
 }
 .tint-red {
@@ -844,7 +837,6 @@
   border: 1px solid rgba(255, 255, 255, 0.35);
   box-shadow: 0 12px 30px rgba(0, 0, 0, 0.4),
     0 0 0 8px rgba(255, 255, 255, 0.16);
-  backdrop-filter: blur(6px) saturate(110%);
   animation: prevGlow 2s ease-in-out infinite;
 }
 .side-nav .nav-btn.next {
@@ -855,7 +847,6 @@
   border: 1px solid rgba(255, 255, 255, 0.28);
   box-shadow: 0 12px 30px rgba(220, 38, 38, 0.4),
     0 0 0 8px rgba(220, 38, 38, 0.18);
-  backdrop-filter: blur(6px) saturate(110%);
   animation: nextGlow 2s ease-in-out infinite;
 }
 @keyframes nextGlow {
