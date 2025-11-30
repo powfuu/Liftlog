@@ -47,3 +47,11 @@ ion-tab-button ion-label {
   font-weight: 600;
   letter-spacing: 0.01em;
 }
+
+/* Hide and disable tabs when any modal is open */
+body.modal-open ion-tab-bar {
+  pointer-events: none;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity .18s ease;
+}

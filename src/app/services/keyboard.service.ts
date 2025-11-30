@@ -1,5 +1,6 @@
 import { Injectable } from '@angular/core';
 import { Keyboard, KeyboardResize } from '@capacitor/keyboard';
+import { Capacitor } from '@capacitor/core';
 
 @Injectable({ providedIn: 'root' })
 export class KeyboardService {
@@ -7,6 +8,7 @@ export class KeyboardService {
   private isOpen = false;
 
   async init() {
+    if (!Capacitor.isNativePlatform()) return;
     try {
       await Keyboard.setResizeMode({ mode: KeyboardResize.Native });
     } catch {}

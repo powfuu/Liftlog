@@ -48,7 +48,37 @@
   margin-top: 8px;
   margin-bottom: 16px;
 }
+.breadcrumb-row {
+  margin-bottom: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  width: 100%;
+}
 .header-subtitle ion-icon { color: #DC2626; font-size: 14px; }
+.crumb-sep { color: #9ca3af; }
+.crumb-link {
+  color: #DC2626;
+  font-weight: 600;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+.crumb-dim {
+  color: #e5e7eb;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+.crumb-link ion-icon, .crumb-dim ion-icon {
+  vertical-align: middle;
+  margin-right: 0;
+}
 
 .header-row {
   margin-bottom: 10px;
@@ -308,8 +338,9 @@
   background: rgba(31,31,31,0.7);
   border: 1px solid rgba(220, 38, 38, 0.14);
   color: #cbd5e1;
-  font-size: 11px;
+  font-size: 10px;
 }
+.routine-tag { display: inline-flex; align-items: center; padding: 2px 8px; border-radius: 999px; background: rgba(31,31,31,0.7); border: 1px solid rgba(220, 38, 38, 0.18); color: #e5e7eb; font-size: 10px; margin-right: 6px; box-shadow: 0 0 10px rgba(220, 38, 38, 0.16); }
 
 .glass-chip.more {
   color: #9ca3af;

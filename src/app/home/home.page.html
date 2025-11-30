@@ -1,17 +1,54 @@
 <ion-content class="bg-surface">
-  <div class="page-container page-enter pb-24">
+  <div class="page-container page-enter pb-24" [class.training-active]="showTraining">
+    <div class="top-controls" *ngIf="!showTraining">
+      <div class="top-left">
+        <button class="date-picker-btn" (click)="openDatePicker($event)" aria-label="Change day">
+          <ion-icon name="calendar"></ion-icon>
+          <span>{{ todayDateStr }}</span>
+        </button>
+      </div>
+      <div class="top-right">
+        <button class="lang-btn" (click)="toggleLanguage()" aria-label="Language">
+          <ion-icon name="globe"></ion-icon>
+          <span class="code">{{ selectedLanguage.toUpperCase() }}</span>
+        </button>
+      </div>
+    </div>
     <app-notch-header
       *ngIf="!showTraining"
-      [icon]="'barbell'"
       [brandRed]="'Lift'"
       [brandWhite]="'Log'"
       [items]="[{icon:'list', text: routinesToday.length + ' routines'}, {icon:'barbell', text: totalExercisesToday + ' exercises'}]"
-      [subtitleLabel]="todayLabel">
+      [subtitleLabel]="todayLabel"
+      [showTodayMark]="isSelectedToday">
     </app-notch-header>
     <ng-container *ngIf="!showTraining">
     <div *ngIf="!isLoading && totalExercisesToday > 0" class="header-subtitle scheduled-subtitle subtitle-anim">
-      <ion-icon name="calendar"></ion-icon>
-      <span>Scheduled today</span>
+      <div class="scheduled-left">
+        <ion-icon name="calendar"></ion-icon>
+        <span>{{ getScheduledLabel() }}</span>
+      </div>
+      <div class="scheduled-right">
+        <button *ngIf="isSelectedToday && selectablePendingCountToday() > 0" class="check-all-btn" (click)="toggleSelectAll()" [attr.aria-pressed]="areAllSelectableSelected()">
+          <ion-icon name="checkmark"></ion-icon>
+          <span>{{ areAllSelectableSelected() ? 'Uncheck all' : 'Check all' }}</span>
+        </button>
+        <button class="program-filter-btn" (click)="showProgramFilter = !showProgramFilter" [attr.aria-expanded]="showProgramFilter" aria-controls="program-menu">
+          <ion-icon *ngIf="selectedProgramFilter !== 'all'" name="funnel"></ion-icon>
+          <ion-icon *ngIf="selectedProgramFilter === 'all'" name="apps"></ion-icon>
+          <span>{{ selectedProgramFilter === 'all' ? 'All Programs' : selectedProgramFilter }}</span>
+        </button>
+      </div>
+    </div>
+    <div *ngIf="showProgramFilter" id="program-menu" class="program-menu">
+      <button class="program-option" (click)="setProgramFilter('all')">
+        <ion-icon name="apps"></ion-icon>
+        <span>All Programs</span>
+      </button>
+      <button *ngFor="let p of getProgramsToday(); let i = index" class="program-option" [class.selected]="selectedProgramFilter===p" (click)="setProgramFilter(p)" [style.animationDelay]="(i * 60) + 'ms'" [attr.aria-selected]="selectedProgramFilter===p">
+        <ion-icon *ngIf="selectedProgramFilter===p" name="checkmark"></ion-icon>
+        <span>{{ p }}</span>
+      </button>
     </div>
 
     <div *ngIf="isLoading" class="flex items-center justify-center h-64">
@@ -26,20 +63,34 @@
         <div class="orb-glow"></div>
         <ion-icon name="flame"></ion-icon>
       </div>
-      <h2>Nothing scheduled today</h2>
+      <h2>{{ isSelectedToday ? 'Nothing scheduled today' : ('Nothing scheduled for ' + selectedDateUS + ' selected') }}</h2>
       <p>You don't have any workout scheduled for today.</p>
       <div class="empty-sparkle"></div>
     </div>
+    </ng-container>
 
-    <div *ngIf="!isLoading && routinesToday.length > 0" class="routines-list">
-      <div *ngFor="let routine of routinesToday; let i = index" class="glass-card routine-card"
-        [style.animationDelay]="(i * 140) + 'ms'">
+    <div *ngIf="!isLoading && routinesToday.length > 0 && !showTraining" class="routines-list">
+      <div *ngFor="let routine of filteredRoutinesToday(); let i = index" class="glass-card routine-card" [class.completed]="isRoutineCompleted(routine.id)" [class.completed-enter]="isRoutineCompleted(routine.id) && isJustCompleted(routine.id)"
+        [style.animationDelay]="(i * 140) + 'ms'" (click)="openPreview(routine)">
         <div class="card-header">
           <div class="header-text">
-            <div class="card-title">{{ routine.name }}</div>
-            <div *ngIf="routine.description" class="card-subtitle">{{ routine.description }}</div>
+            <div class="header-top">
+              <div class="card-title">{{ routine.name }}</div>
+              <span class="routine-tag">{{ routine.programName || 'Program' }}</span>
+            </div>
           </div>
           <div class="header-actions">
+            <span *ngIf="isRoutineCompleted(routine.id) && !isJustCompleted(routine.id)" class="done-tag" [class.done-enter]="isJustCompleted(routine.id)">Done</span>
+            <button *ngIf="isRoutineCompleted(routine.id) && !isJustCompleted(routine.id)" class="action-button reset" (click)="$event.stopPropagation(); resetRoutineForToday(routine)">
+              <ion-icon name="refresh"></ion-icon>
+            </button>
+            <button *ngIf="isSelectedToday && !isRoutineCompleted(routine.id) && !isJustCompleted(routine.id) && !showTraining" class="action-button select" [class.selected]="isRoutineSelected(routine.id)" [class.semi]="previewRoutine?.id===routine.id && !isRoutineSelected(routine.id)" (click)="$event.stopPropagation(); toggleRoutineSelection(routine.id)">
+              <ion-icon name="checkmark"></ion-icon>
+            </button>
+            <div *ngIf="((showTraining && isRoutineSelected(routine.id) && !isRoutineCompleted(routine.id)) || isJustCompleted(routine.id))" class="action-button spinner" (click)="$event.stopPropagation()">
+              <div class="spinner"></div>
+            </div>
+
             <button class="action-button" (click)="openPreview(routine, $event)">
               <ion-icon name="chevron-down"></ion-icon>
             </button>
@@ -69,7 +120,6 @@
         </div>
       </div>
     </div>
-    </ng-container>
 
     <div *ngIf="showTraining" class="training-view" [class.view-enter]="panelState==='entering'" [class.view-exit]="panelState==='exiting'">
       <div class="training-content">
@@ -100,6 +150,7 @@
               <div class="accordion-text">
                 <div class="accordion-title">{{ exercise.exerciseName?.trim() ? exercise.exerciseName : 'Exercise' }}</div>
                 <div class="accordion-subtitle">
+                  <span class="routine-tag">{{ getRoutineNameForExercise(exercise.exerciseId) }}</span>
                   <span class="subtitle-label">Sets</span> <span class="subtitle-number">{{ exercise.targetSets }}</span>
                   • <span class="subtitle-label">Reps</span> <span class="subtitle-number">{{ exercise.targetReps }}</span>
                   • <span class="subtitle-label">Weight</span> <span class="subtitle-number">{{ exercise.weight }}</span> <span class="subtitle-number">{{ exercise.weightUnit }}</span>
@@ -166,13 +217,13 @@
       </div>
     </div>
   </div>
-  <div *ngIf="!showTraining && !isLoading && routinesToday.length === 0" class="start-day-alert subtitle-anim">
+  <div *ngIf="!showTraining && !isLoading && routinesToday.length === 0 && isSelectedToday" class="start-day-alert subtitle-anim">
     <ion-icon name="information-circle"></ion-icon>
-    <span>No routine assigned for today. <span class="create-link" (click)="navigateToRoutines()">Create it now!</span></span>
+    <span>No routine assigned for this day. <span class="create-link" (click)="navigateToRoutines()">Create it now!</span></span>
   </div>
-  <button *ngIf="!showTraining" class="start-day-fab" [disabled]="routinesToday.length === 0" (click)="openTrainingDay()">
+  <button *ngIf="!showTraining && isSelectedToday" class="start-day-fab" [class.done-mode]="areAllCompleted()" [disabled]="areAllCompleted() || !hasSelection()" (click)="openTrainingSelected()">
     <ion-icon name="flame"></ion-icon>
-    <span>Start new training day</span>
+    <span>{{ getStartButtonText() }}</span>
   </button>
   <ion-modal [isOpen]="showPreview" class="preview-modal" (didDismiss)="closePreview()" initialBreakpoint="0.8"
     [breakpoints]="[0.6, 0.8, 1]" backdropDismiss="true">
@@ -184,6 +235,10 @@
             <span>{{ previewRoutine?.name }}</span>
           </div>
           <button class="preview-close" (click)="closePreview()"><ion-icon name="close"></ion-icon></button>
+        </div>
+        <div class="preview-desc" *ngIf="previewRoutine?.description">
+          <ion-icon name="information-circle" class="desc-icon"></ion-icon>
+          <span class="desc-text">{{ previewRoutine?.description }}</span>
         </div>
         <div class="preview-meta-box">
           <div class="preview-meta">
@@ -224,4 +279,30 @@
       </div>
     </ng-template>
   </ion-modal>
+  <ion-popover [isOpen]="showDatePicker" [event]="datePopoverEvent" class="date-popover" (didDismiss)="closeDatePicker()">
+    <ng-template>
+      <div class="custom-calendar">
+        <div class="cal-header">
+          <button class="nav-btn" (click)="prevMonth()"><ion-icon name="chevron-back"></ion-icon></button>
+          <div class="cal-title text-gradient-primary">{{ calendarMonthLabel }} {{ calendarYear }}</div>
+          <button class="nav-btn" (click)="nextMonth()"><ion-icon name="chevron-forward"></ion-icon></button>
+        </div>
+        <div class="cal-weekdays">
+          <div class="wd" *ngFor="let wd of weekdayLabels">{{ wd }}</div>
+        </div>
+        <div class="cal-grid" [class.animate]="shouldAnimateDays">
+          <button class="cal-day" *ngFor="let d of calendarDays; let i = index" [class.will-animate]="shouldAnimateDays" [class.outside]="!isCurrentMonth(d)" [class.today]="isToday(d)" [class.selected]="isSelected(d)" [class.trained]="isTrainedDay(d) && !isSelected(d)" [class.untrained]="isPastDay(d) && !isTrainedDay(d) && !isSelected(d)" [disabled]="isPastDay(d) && !isTrainedDay(d)" (click)="selectDate(d)" [style.animationDelay]="shouldAnimateDays ? (i * 30) + 'ms' : null">{{ getDayNumber(d) }}</button>
+        </div>
+        <div class="cal-legend">
+          <div class="legend-item"><span class="legend-dot trained"></span><span>Entrenado</span></div>
+          <div class="legend-item"><span class="legend-dot untrained"></span><span>No entrenado</span></div>
+          <div class="legend-item"><span class="legend-dot selected"></span><span>Seleccionado</span></div>
+        </div>
+        <div class="cal-footer">
+          <button class="footer-btn cancel" (click)="closeDatePicker()">Cancel</button>
+          <button class="footer-btn done" (click)="confirmSelectedDate()">Done</button>
+        </div>
+      </div>
+    </ng-template>
+  </ion-popover>
 </ion-content>

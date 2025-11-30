@@ -2,7 +2,7 @@ import { Component, Input, Output, EventEmitter } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { IonIcon } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
-import { barbell, list, statsChart, flame, calendar, informationCircle, add } from 'ionicons/icons';
+import { barbell, list, statsChart, flame, calendar, informationCircle, add, chevronBack } from 'ionicons/icons';
 
 @Component({
   selector: 'app-notch-header',
@@ -18,10 +18,15 @@ export class NotchHeaderComponent {
   @Input() brandRed?: string;
   @Input() brandWhite?: string;
   @Input() subtitleLabel?: string;
+  @Input() showTodayMark: boolean = false;
   @Input() actionIcon?: string;
   @Output() action = new EventEmitter<void>();
+  @Input() secondaryActionIcon?: string;
+  @Output() secondaryAction = new EventEmitter<void>();
+  @Input() leadingActionIcon?: string;
+  @Output() leadingAction = new EventEmitter<void>();
 
   constructor() {
-    addIcons({ barbell, list, statsChart, flame, calendar, informationCircle, add });
+    addIcons({ barbell, list, statsChart, flame, calendar, informationCircle, add, chevronBack });
   }
 }

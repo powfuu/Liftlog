@@ -819,6 +819,9 @@ button:active {
   position: static;
   width: 100%;
   height: 100%;
+  padding-left: 20px;
+  padding-right: 20px;
+  margin-top: 30px;
 }
 .tab-surface::before {
   content: '';
@@ -1004,7 +1007,25 @@ button:active {
   justify-content: space-between;
   margin-bottom: 10px;
 }
-.exercise-item { margin-bottom: 15px; width: 100%; }
+.exercise-item { margin-bottom: 10px; width: 100%; }
+.exercise-item.open { margin-bottom: 12px; }
+.exercise-item.dragging { opacity: 0.6; }
+.exercise-item.dragging .accordion-header,
+.exercise-item.dragging .accordion-details,
+.exercise-item.dragging .accordion-toggle {
+  transition: none !important;
+}
+.exercise-item.drop-target { position: relative; }
+.exercise-item.drop-target::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 12px;
+  background: linear-gradient(135deg, rgba(220,38,38,0.08), rgba(220,38,38,0.16));
+  box-shadow: 0 0 0 2px rgba(220,38,38,0.45), 0 14px 36px rgba(220,38,38,0.25);
+  pointer-events: none;
+}
+.exercise-item.drop-target .accordion-header { border-color: rgba(220, 38, 38, 0.35); }
 /* removed exercise separator as accordion spacing is sufficient */
 .days-label {
   color: #cbd5e1;
@@ -1015,7 +1036,7 @@ button:active {
 /* Accordion */
 .accordion-header {
   display: grid;
-  grid-template-columns: 1fr auto;
+  grid-template-columns: auto 1fr auto;
   align-items: center;
   gap: 12px;
   cursor: pointer;
@@ -1028,12 +1049,12 @@ button:active {
 .accordion-text { display: flex; flex-direction: column; gap: 4px; }
 .accordion-title {
   color: #ffffff;
-  font-size: var(--fz-m);
+  font-size: var(--fz-s);
   font-weight: 700;
 }
-.accordion-subtitle { color: #9ca3af; font-size: var(--fz-xs); font-weight: 600; }
-.subtitle-label { color: #9ca3af; }
-.subtitle-number { color: rgba(255, 100, 100, 0.9); margin-left: 6px; }
+.accordion-subtitle { color: #9ca3af; font-size: 10px; font-weight: 600; letter-spacing: -0.01em; }
+.subtitle-label { color: #9ca3af; font-size: 9px; }
+.subtitle-number { color: rgba(255, 100, 100, 0.9); margin-left: 6px; font-size: 10px; }
 .accordion-actions {
   display: inline-flex;
   align-items: center;
@@ -1063,11 +1084,52 @@ button:active {
   border-radius: 0 0 12px 12px;
   background: rgba(0,0,0,0.08);
   width: 100%;
-  padding: 14px 16px;
+  padding: 0 16px;
 }
 .accordion-details.expanded {
   max-height: 2000px;
   opacity: 1;
+  padding: 14px 16px;
+}
+
+.drag-handle {
+  width: 12px;
+  height: 24px;
+  display: grid;
+  grid-template-columns: repeat(2, 3px);
+  grid-auto-rows: 3px;
+  gap: 2px;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: none;
+  padding: 0;
+  margin-right: 4px;
+  cursor: grab;
+  margin-left: -5px;
+  margin-right: 0px;
+}
+.drag-handle:active { cursor: grabbing; }
+.drag-handle .dot { width: 3px; height: 3px; border-radius: 50%; background: #DC2626; box-shadow: 0 0 4px rgba(220, 38, 38, 0.3); }
+.drag-handle:hover .dot { background: #ef4444; }
+
+/* Drag & Drop visuals */
+.drag-placeholder {
+  width: 100%;
+  min-height: 72px;
+  border-radius: 12px;
+  background: rgba(220, 38, 38, 0.08);
+  border: 1px dashed rgba(220, 38, 38, 0.35);
+  box-shadow: 0 10px 28px rgba(220, 38, 38, 0.20);
+}
+
+.drag-preview {
+  display: block;
+  width: 100%;
+  border-radius: 12px;
+  background: rgba(0, 0, 0, 0.18);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.45), 0 0 0 2px rgba(220, 38, 38, 0.45);
+  padding: 14px 16px;
 }
 
 /* Estilo para valores numéricos y transiciones */
@@ -1078,11 +1140,12 @@ button:active {
 
 /* Optimización móvil */
 @media (max-width: 640px) {
-  .accordion-title { font-size: var(--fz-m); }
-  .accordion-subtitle { font-size: var(--fz-xs); }
+  .accordion-title { font-size: var(--fz-s); }
+  .accordion-subtitle { font-size: 9px; }
   .accordion-toggle { width: 48px; height: 48px; }
   .accordion-header { padding: 16px; }
-  .accordion-details { padding: 16px; }
+  .accordion-details { padding: 0 16px; }
+  .accordion-details.expanded { padding: 14px 16px; }
 }
 .accordion-list { margin-top: 12px; }
 .modal-body {
@@ -1092,8 +1155,13 @@ button:active {
   -webkit-overflow-scrolling: touch;
   will-change: opacity, transform;
 }
-.modal-notch { position: relative; display: grid; grid-template-columns: 1fr auto auto; align-items: center; gap: 12px; padding: 12px 14px; border-radius: 18px; background: linear-gradient(135deg, rgba(220,38,38,0.30), rgba(255,255,255,0.12)); border: 1px solid rgba(220,38,38,0.28); backdrop-filter: blur(18px) saturate(180%); -webkit-backdrop-filter: blur(18px) saturate(180%); box-shadow: 0 8px 18px rgba(0,0,0,0.32); width: 90%; margin: 0 auto; z-index: 99999; }
-.notch-title { display: inline-flex; align-items: center; gap: 8px; color: #ffffff; font-weight: 700; letter-spacing: -0.01em; }
+.modal-notch { position: relative; display: grid; grid-template-columns: 1fr auto auto; align-items: center; gap: 12px; padding: 10px 10px; border-radius: 18px; background:linear-gradient(
+  135deg,
+  rgb(73, 23, 23),
+  rgb(20, 20, 20)
+);
+  backdrop-filter: blur(32px) saturate(180%); -webkit-backdrop-filter: blur(32px) saturate(180%); box-shadow: 0 8px 18px rgba(0,0,0,0.32); width: 90%; margin: 0 auto; z-index: 99999; }
+.notch-title { display: inline-flex; align-items: center; gap: 8px; color: #ffffff; font-weight: 700; letter-spacing: -0.01em; margin-left: 10px; }
 .notch-title ion-icon { color: #DC2626; font-size: 16px; filter: drop-shadow(0 0 6px rgba(220, 38, 38, 0.25)); }
 .notch-title span { font-size: 13px; }
 .notch-center { position: relative; display: inline-flex; align-items: center; justify-content: center; gap: 8px; padding: 6px; background: rgba(23,23,23,0.28); border-radius: 14px; box-shadow: 0 8px 18px rgba(0,0,0,0.22); }

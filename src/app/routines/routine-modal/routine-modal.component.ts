@@ -1,9 +1,10 @@
-import { Component, OnInit, OnDestroy, Input } from '@angular/core';
+import { Component, OnInit, OnDestroy, Input, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { IonIcon, ModalController } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
-import { add, remove, chevronDown, save, close, list, barbell, informationCircle, trash } from 'ionicons/icons';
+import { DragDropModule, CdkDragDrop, moveItemInArray } from '@angular/cdk/drag-drop';
+import { add, remove, chevronDown, save, close, list, barbell, informationCircle, trash, swapVertical } from 'ionicons/icons';
 import { Routine, RoutineExercise } from '../../models/routine.model';
 import { StorageService } from '../../services/storage.service';
 import { StoreService } from '../../services/store.service';
@@ -13,10 +14,12 @@ import { AlertService } from '../../services/alert.service';
   selector: 'app-routine-modal',
   templateUrl: './routine-modal.component.html',
   styleUrls: ['./routine-modal.component.scss'],
-  imports: [CommonModule, FormsModule, IonIcon],
+  imports: [CommonModule, FormsModule, IonIcon, DragDropModule],
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class RoutineModalComponent implements OnInit, OnDestroy {
   @Input() routine?: Routine;
+  @Input() programName?: string;
   routineName = '';
   routineDescription = '';
   daysOptions: string[] = ['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'];
@@ -26,6 +29,8 @@ export class RoutineModalComponent implements OnInit, OnDestroy {
   activeTab: 'exercises' | 'info' = 'exercises';
   tabTransition: '' | 'left' | 'right' = '';
   animationState: 'entering' | 'entered' | 'exiting' = 'entering';
+  hoverIndex: number | null = null;
+  draggingId: string | null = null;
 
   constructor(
     private modalController: ModalController,
@@ -33,7 +38,7 @@ export class RoutineModalComponent implements OnInit, OnDestroy {
     private store: StoreService,
     private alerts: AlertService
   ) {
-    addIcons({ add, remove, chevronDown, save, close, list, barbell, informationCircle, trash });
+    addIcons({ add, remove, chevronDown, save, close, list, barbell, informationCircle, trash, swapVertical });
   }
 
   ngOnInit() {
@@ -75,16 +80,20 @@ export class RoutineModalComponent implements OnInit, OnDestroy {
       exerciseId: id,
       exerciseName: '',
       weight: 0,
-      weightUnit: 'lbs',
+      weightUnit: 'kg',
       targetSets: 3,
       targetReps: 10,
       reserveReps: 0,
       notes: '',
       order
     };
-    this.exercises = [ex, ...this.exercises];
+    this.exercises.push(ex);
     this.expandedIds.add(id);
     this.activeTab = 'exercises';
+    setTimeout(() => {
+      const el = document.getElementById('exercise-' + id);
+      el?.scrollIntoView({ behavior: 'smooth', block: 'start', inline: 'nearest' });
+    }, 0);
   }
 
   removeExercise(i: number) {
@@ -103,24 +112,54 @@ export class RoutineModalComponent implements OnInit, OnDestroy {
     }
   }
 
+  onHeaderClick(ex: RoutineExercise) {
+    if (this.draggingId) { return; }
+    this.toggleExercise(ex);
+  }
+
+  trackByExerciseId(index: number, ex: RoutineExercise): string { return ex.exerciseId; }
+
+  dropCdk(event: CdkDragDrop<RoutineExercise[]>) {
+    const from = event.previousIndex;
+    const to = this.hoverIndex ?? event.currentIndex;
+    if (from === to) { this.hoverIndex = null; return; }
+    const tmp = this.exercises[to];
+    this.exercises[to] = this.exercises[from];
+    this.exercises[from] = tmp;
+    for (let i = 0; i < this.exercises.length; i++) {
+      this.exercises[i].order = i;
+    }
+    this.hoverIndex = null;
+  }
+
+  onDragEntered(index: number) { if (this.hoverIndex !== index) this.hoverIndex = index; }
+  onDragExited(index: number) { if (this.hoverIndex === index) this.hoverIndex = null; }
+  onDragStarted(id: string) { this.draggingId = id; }
+  onDragEnded() { this.draggingId = null; this.hoverIndex = null; }
+
   adjustValue(ex: RoutineExercise, field: keyof RoutineExercise, delta: number, min: number, max: number) {
     const next = Math.max(min, Math.min(max, Number((ex as any)[field]) + delta));
     (ex as any)[field] = next;
   }
 
   async saveRoutine() {
+    const name = this.routineName?.trim();
+    if (!name) { await this.alerts.error('Please set a routine name'); return; }
+    if (this.selectedDays.length === 0) { await this.alerts.error('Please select at least one training day'); return; }
+
     const now = new Date();
     const id = this.routine?.id || Date.now().toString(36) + Math.random().toString(36).slice(2);
     const payload: Routine = {
       id,
-      name: this.routineName?.trim() ? this.routineName : 'New routine',
+      name,
       description: this.routineDescription?.trim() ? this.routineDescription : '',
       exercises: this.exercises.map((e, idx) => ({ ...e, order: idx })),
-      frequency: this.selectedDays.length > 0 ? 'custom' : 'daily',
+      frequency: 'custom',
       days: this.selectedDays,
       isActive: true,
       createdAt: this.routine?.createdAt || now,
-      updatedAt: now
+      updatedAt: now,
+      programName: this.routine?.programName || this.programName || 'General'
     };
     try {
       await this.storage.saveRoutine(payload);

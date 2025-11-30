@@ -1,14 +1,21 @@
 <ion-content class="bg-surface">
   <div class="page-container page-enter pt-12 pb-24">
+    <div class="header-subtitle breadcrumb-row">
+      <button class="crumb-link" (click)="goToPrograms()"><ion-icon name="albums"></ion-icon><span>Programs</span></button>
+      <span class="crumb-sep">></span>
+      <span class="crumb-dim"><ion-icon name="list"></ion-icon><span>Routines</span></span>
+    </div>
     <app-notch-header
       [title]="'Routines'"
       [icon]="'list'"
-      [actionIcon]="'add'"
-      (action)="createRoutine()">
+      [leadingActionIcon]="'chevron-back'"
+      (leadingAction)="goToPrograms()"
+      [secondaryActionIcon]="'add'"
+      (secondaryAction)="createRoutine()">
     </app-notch-header>
     <div *ngIf="!isLoading" class="header-subtitle">
       <ion-icon name="list"></ion-icon>
-      <span>{{ routines.length }} routines</span>
+      <span>{{ currentProgram ? filteredRoutines.length : routines.length }} routines</span>
       <span>•</span>
       <ion-icon name="barbell"></ion-icon>
       <span>{{ getTotalExerciseCount() }} exercises</span>
@@ -31,9 +38,9 @@
       <div class="empty-action" (click)="createRoutine()">Create it now!</div>
     </div>
 
-    <div *ngIf="!isLoading && routines.length > 0" class="routines-list">
+    <div *ngIf="!isLoading && filteredRoutines.length > 0" class="routines-list">
       <div
-        *ngFor="let routine of routines; let i = index"
+        *ngFor="let routine of filteredRoutines; let i = index"
         (click)="editRoutine(routine)"
         class="glass-card routine-card"
         [class.card-initial]="initialAnimation"
@@ -47,7 +54,6 @@
         <div class="card-header">
           <div class="header-text">
             <div class="card-title">{{ routine.name }}</div>
-            <div *ngIf="routine.description" class="card-subtitle">{{ routine.description }}</div>
           </div>
           <div class="header-actions">
             <button class="action-button" (click)="$event.stopPropagation(); editRoutine(routine)">
@@ -61,9 +67,7 @@
 
         <!-- Exercise Preview -->
         <div class="card-chips">
-          <div
-            *ngFor="let exercise of routine.exercises.slice(0, 3)"
-            class="glass-chip">
+          <div *ngFor="let exercise of routine.exercises.slice(0, 3)" class="glass-chip">
             <span>{{ exercise.exerciseName }}</span>
           </div>
           <div
@@ -90,5 +94,6 @@
         </div>
       </div>
     </div>
+
   </div>
 </ion-content>

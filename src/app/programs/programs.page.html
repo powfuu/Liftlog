@@ -1,0 +1,61 @@
+<ion-content class="bg-surface">
+  <div class="page-container page-enter pt-12 pb-24">
+    <app-notch-header [title]="'Programs'" [icon]="'albums'" [actionIcon]="'add'" (action)="openCreateProgram()"></app-notch-header>
+
+    <div *ngIf="isLoading" class="flex items-center justify-center h-64">
+      <div class="space-y-4 text-center">
+        <div class="w-12 h-12 bg-gray-800 rounded-full animate-pulse mx-auto"></div>
+        <p class="text-gray-500 text-sm">Loading programs...</p>
+      </div>
+    </div>
+
+    <div *ngIf="!isLoading && programs.length === 0" class="empty-hero empty-anim">
+      <div class="hero-glow"></div>
+      <div class="hero-icon"><ion-icon name="albums"></ion-icon></div>
+      <h2>Start by creating your first program</h2>
+      <p>Organize your training into clear plans and track your progress.</p>
+      <div class="hero-actions">
+        <button type="button" class="hero-primary" (click)="openCreateProgram()"><ion-icon name="add"></ion-icon><span>Create program</span></button>
+      </div>
+    </div>
+
+    <div *ngIf="!isLoading && view==='programs' && programs.length > 0" class="routines-list">
+      <div *ngFor="let p of programs; let i = index" class="glass-card program-card" [class.card-initial]="initialAnimation" [class.card-enter]="p.name === lastAddedProgram" [class.card-exit]="deletingPrograms.has(p.name)" [style.animationDelay]="(i * 120) + 'ms'">
+        <div class="program-row">
+          <div class="program-body" (click)="openProgram(p.name)">
+            <div class="program-header">
+              <div class="program-title">{{ p.name }}</div>
+              <div class="days-badge"><ion-icon name="calendar"></ion-icon><span>{{ p.daysPerWeek }} days/week</span></div>
+            </div>
+            <div class="program-desc" *ngIf="p.description">{{ p.description }}</div>
+            <div class="program-meta">
+              <span class="routine-tag"><ion-icon name="list"></ion-icon>{{ p.routineCount }} routines</span>
+              <span class="routine-tag"><ion-icon name="barbell"></ion-icon>{{ p.exerciseCount }} exercises</span>
+            </div>
+            <div class="program-actions">
+              <button class="action-button danger" (click)="onDeleteProgram(p.name, $event)"><ion-icon name="trash"></ion-icon></button>
+              <button class="action-button" (click)="$event.stopPropagation(); openProgram(p.name)"><ion-icon name="chevron-forward"></ion-icon></button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Routines within selected Program -->
+    <div *ngIf="!isLoading && view==='routines'" class="routines-list">
+      <div *ngFor="let routine of filteredRoutines; let i = index" class="glass-card routine-card" [class.card-initial]="initialAnimation" [style.animationDelay]="(i * 120) + 'ms'" (click)="goToRoutinesView()">
+        <div class="card-header">
+          <div class="header-text">
+            <div class="card-title">{{ routine.name }}</div>
+            <span class="routine-tag">{{ routine.programName || 'Program' }}</span>
+          </div>
+          <div class="header-actions">
+            <button class="action-button" (click)="$event.stopPropagation(); goToRoutinesView()"><ion-icon name="chevron-forward"></ion-icon></button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+
+  </div>
+</ion-content>

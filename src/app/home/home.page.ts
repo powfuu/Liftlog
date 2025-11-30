@@ -56,10 +56,10 @@ export class StorageService {
 
       // Create tables
       await this.createTables();
-      
+
       // Insert default exercises
       await this.insertDefaultExercises();
-      
+
       // Insert default preferences
       await this.insertDefaultPreferences();
 
@@ -488,13 +488,13 @@ export class StorageService {
       // Store in Preferences for web environment
       const routines = await this.getRoutines();
       const existingIndex = routines.findIndex(r => r.id === routine.id);
-      
+
       if (existingIndex >= 0) {
         routines[existingIndex] = routine;
       } else {
         routines.push(routine);
       }
-      
+
       await Preferences.set({
         key: 'routines',
         value: JSON.stringify(routines)
@@ -627,7 +627,7 @@ export class StorageService {
     if (this.isWebEnvironment()) {
       const routines = await this.getRoutines();
       const filteredRoutines = routines.filter(r => r.id !== id);
-      
+
       await Preferences.set({
         key: 'routines',
         value: JSON.stringify(filteredRoutines)
@@ -661,5 +661,315 @@ export class StorageService {
 
   async clearTrainingState(): Promise<void> {
     await Preferences.remove({ key: 'training_state' });
+  }
+}
+
+import { Component, OnInit } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
+import { IonContent, IonIcon, IonModal, IonDatetime, IonPopover } from '@ionic/angular/standalone';
+import { addIcons } from 'ionicons';
+import { flame, calendar, barbell, informationCircle, close, refresh, chevronDown, checkmark, add, remove, funnel, apps, globe, chevronBack, chevronForward } from 'ionicons/icons';
+import { Router } from '@angular/router';
+import { StoreService } from '../services/store.service';
+import { AlertService } from '../services/alert.service';
+import { NotchHeaderComponent } from '../shared/notch-header/notch-header.component';
+import { format, startOfMonth, endOfMonth, startOfWeek, endOfWeek, addDays, isSameMonth, isSameDay } from 'date-fns';
+
+@Component({
+  selector: 'app-home',
+  templateUrl: 'home.page.html',
+  styleUrls: ['home.page.scss'],
+  standalone: true,
+  imports: [CommonModule, FormsModule, IonContent, IonIcon, IonModal, IonDatetime, IonPopover, NotchHeaderComponent]
+})
+export class HomePage implements OnInit {
+  showTraining = false;
+  trainingInitiated = false;
+  showProgramFilter = false;
+  selectedProgramFilter: string = 'all';
+  panelState: 'entering'|'exiting'|'idle' = 'idle';
+  routinesToday: any[] = [];
+  todayExercises: any[] = [];
+  todayLabel = '';
+  totalExercisesToday = 0;
+  todayDateStr = '';
+  todayDateShort = '';
+  showPreview = false;
+  previewRoutine: any | null = null;
+  isLoading = false;
+  private expandedIds = new Set<string>();
+  private elapsedSeconds = 0;
+  private timerId: any;
+  private resumeChecked = false;
+
+  constructor(private router: Router, private store: StoreService, private storage: StorageService, private alerts: AlertService) {
+    addIcons({ flame, calendar, barbell, informationCircle, close, refresh, chevronDown, checkmark, add, remove, funnel, apps, globe, chevronBack, chevronForward });
+  }
+
+  async ngOnInit() {
+    try {
+      const langRes = await Preferences.get({ key: 'language' });
+      this.selectedLanguage = langRes.value === 'es' ? 'es' : 'en';
+    } catch { this.selectedLanguage = 'en'; }
+    const today = new Date();
+    this.selectedDateISO = today.toISOString();
+    this.applySelectedDate(today);
+  }
+
+  private async bootstrapData(dayName: string) {
+    try {
+      await this.storage.initializeDatabase();
+      this.store.getState$().subscribe(state => {
+        this.isLoading = state.isLoading;
+        const routines = state.routines || [];
+        this.routinesToday = routines.filter(r => Array.isArray(r.days) ? r.days.includes(dayName) : r.frequency === 'daily');
+        this.totalExercisesToday = this.routinesToday.reduce((sum, r) => sum + (r.exercises?.length || 0), 0);
+        if (!this.resumeChecked) { this.resumeTrainingIfNeeded(dayName); }
+      });
+      await this.loadCompletedForToday();
+    } catch {}
+  }
+
+  navigateToRoutines() { this.router.navigate(['/tabs/programs']); }
+  formatTimer(): string { const m = Math.floor(this.elapsedSeconds / 60); const s = this.elapsedSeconds % 60; return `${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`; }
+  async finishTraining() { this.panelState = 'exiting'; await this.finishTrainingAndMark(); this.showTraining = false; setTimeout(()=>{ this.panelState = 'idle'; }, 280); }
+  getTotalTargetSets(): number { return this.todayExercises.reduce((sum, ex) => sum + (Number(ex.targetSets) || 0), 0); }
+  isExpanded(ex: any): boolean { return this.expandedIds.has(ex.exerciseId); }
+  toggleExercise(ex: any) { if (this.expandedIds.has(ex.exerciseId)) { this.expandedIds.delete(ex.exerciseId); } else { this.expandedIds.add(ex.exerciseId); } }
+  adjustValue(ex: any, field: keyof any, delta: number, min: number, max: number) { const next = Math.max(min, Math.min(max, Number(ex[field]) + delta)); (ex as any)[field] = next; this.persistExercise(ex); }
+  setUnit(ex: any, unit: 'lbs'|'kg') { ex.weightUnit = unit; this.persistExercise(ex); }
+  async persistExercise(ex: any) {
+    try {
+      const routines = await this.storage.getRoutines();
+      let changed = false;
+      for (const r of routines) {
+        const idx = (r.exercises || []).findIndex(e => e.exerciseId === ex.exerciseId);
+        if (idx !== -1) {
+          r.exercises[idx] = {
+            ...r.exercises[idx],
+            weight: Number(ex.weight) || 0,
+            weightUnit: ex.weightUnit || 'lbs',
+            targetSets: Number(ex.targetSets) || 0,
+            targetReps: Number(ex.targetReps) || 0,
+            reserveReps: Number(ex.reserveReps) || 0,
+            notes: ex.notes || ''
+          } as any;
+          await this.storage.saveRoutine(r);
+          changed = true;
+        }
+      }
+      if (changed) {
+        const latest = await this.storage.getRoutines();
+        this.store.setRoutines(latest);
+      }
+    } catch {}
+  }
+  openPreview(routine: any, ev?: Event) { if (ev) ev.stopPropagation(); this.previewRoutine = routine; this.showPreview = true; }
+  closePreview() { this.showPreview = false; this.previewRoutine = null; }
+  openTrainingDay() { this.openTrainingSelected(); }
+  async openTrainingSelected() {
+    if (this.selectedRoutineIds.size === 0 && this.previewRoutine?.id && !this.completedRoutineIds.has(this.previewRoutine.id)) {
+      this.selectedRoutineIds.add(this.previewRoutine.id);
+    }
+    if (this.selectedRoutineIds.size === 0) return;
+    const selected = this.routinesToday.filter(r => this.selectedRoutineIds.has(r.id) && !this.completedRoutineIds.has(r.id));
+    const list: any[] = [];
+    selected.forEach(r => r.exercises?.forEach((e: any) => list.push({ ...e })));
+    if (list.length === 0) return;
+    this.todayExercises = list;
+    this.expandedIds = new Set(this.todayExercises.map(ex => ex.exerciseId));
+    this.trainingInitiated = true;
+    this.showTraining = true;
+    this.panelState = 'entering';
+    setTimeout(()=>{ this.panelState = 'idle'; }, 350);
+    this.startTimer(0);
+    try {
+      await this.storage.setTrainingState({ inProgress: true, startedAt: new Date().toISOString() });
+      await Preferences.set({ key: this.getTrainingSelectionKey(), value: JSON.stringify(Array.from(this.selectedRoutineIds)) });
+    } catch {}
+  }
+  getRoutineNameForExercise(exerciseId: string): string | undefined { const r = this.routinesToday.find(rt => Array.isArray(rt.exercises) && rt.exercises.some((e: any) => e.exerciseId === exerciseId)); return r?.name; }
+  getDaysPerWeekLabel(routine: any): string { const days = routine?.days || []; if (Array.isArray(days) && days.length > 0) { return `${days.length} days/week`; } switch (routine?.frequency) { case 'daily': return '7 days/week'; case 'weekly': return '1 day/week'; default: return 'Custom'; } }
+
+  selectedRoutineIds = new Set<string>();
+  completedRoutineIds = new Set<string>();
+  justCompletedIds = new Set<string>();
+  toggleRoutineSelection(id: string) { if (this.completedRoutineIds.has(id)) return; if (this.selectedRoutineIds.has(id)) { this.selectedRoutineIds.delete(id); } else { this.selectedRoutineIds.add(id); } }
+  isRoutineSelected(id: string): boolean { return this.selectedRoutineIds.has(id); }
+  isRoutineCompleted(id: string): boolean { return this.completedRoutineIds.has(id); }
+  isJustCompleted(id: string): boolean { return this.justCompletedIds.has(id); }
+  hasSelection(): boolean { return this.selectedRoutineIds.size > 0; }
+  areAllCompleted(): boolean { return this.routinesToday.length > 0 && this.routinesToday.every(r => this.completedRoutineIds.has(r.id)); }
+  getProgramsToday(): string[] { const set = new Set<string>(); for (const r of this.routinesToday) { const name = r.programName || 'General'; set.add(name); } return Array.from(set); }
+  filteredRoutinesToday(): any[] { if (this.selectedProgramFilter === 'all') return this.routinesToday; return this.routinesToday.filter(r => (r.programName || 'General') === this.selectedProgramFilter); }
+  setProgramFilter(p: string) { this.selectedProgramFilter = p; this.showProgramFilter = false; }
+  selectablePendingCountToday(): number { const source = this.filteredRoutinesToday(); return source.filter(r => !this.completedRoutineIds.has(r.id) && !this.justCompletedIds.has(r.id)).length; }
+  getStartButtonText(): string { if (this.areAllCompleted()) return 'Done for today'; if (!this.hasSelection()) return 'Select routine'; const c = this.selectedRoutineIds.size; return c === 1 ? 'Start routine' : 'Start routines'; }
+
+  selectAllAvailable() { const source = this.filteredRoutinesToday(); source.forEach(r => { if (!this.completedRoutineIds.has(r.id) && !this.justCompletedIds.has(r.id)) { this.selectedRoutineIds.add(r.id); } }); }
+  unselectAllAvailable() { const source = this.filteredRoutinesToday(); source.forEach(r => { if (!this.completedRoutineIds.has(r.id) && !this.justCompletedIds.has(r.id)) { this.selectedRoutineIds.delete(r.id); } }); }
+  areAllSelectableSelected(): boolean { const source = this.filteredRoutinesToday(); const selectable = source.filter(r => !this.completedRoutineIds.has(r.id) && !this.justCompletedIds.has(r.id)); if (selectable.length === 0) return false; return selectable.every(r => this.selectedRoutineIds.has(r.id)); }
+  toggleSelectAll() { if (this.areAllSelectableSelected()) { this.unselectAllAvailable(); } else { this.selectAllAvailable(); } }
+
+  // Date & language controls
+  showDatePicker = false;
+  datePopoverEvent?: any;
+  selectedDateISO = '';
+  selectedLanguage: 'en'|'es' = 'en';
+  shouldAnimateDays = false;
+  isSelectedToday = true;
+  selectedDateUS = '';
+  openDatePicker(ev?: Event) { this.datePopoverEvent = ev; this.showDatePicker = true; this.shouldAnimateDays = true; }
+  closeDatePicker() { this.showDatePicker = false; }
+  onDateChange(ev: any) { try { const iso = ev?.detail?.value; if (!iso) return; const d = new Date(iso); this.applySelectedDate(d); this.closeDatePicker(); } catch {} }
+  async setLanguage(lang: 'en'|'es') { this.selectedLanguage = lang; try { await Preferences.set({ key: 'language', value: lang }); } catch {} const d = new Date(this.selectedDateISO); this.applySelectedDate(d); }
+  toggleLanguage() { this.setLanguage(this.selectedLanguage === 'en' ? 'es' : 'en'); }
+  getLanguageFlag(): string { return this.selectedLanguage === 'en' ? '🇺🇸' : '🇪🇸'; }
+  calendarYear = 0;
+  calendarMonth = 0;
+  calendarDays: Date[] = [];
+  calendarMonthLabel = '';
+  weekdayLabels: string[] = [];
+  trainedDayKeys = new Set<string>();
+  prevMonth() { const d = new Date(this.calendarYear, this.calendarMonth, 1); d.setMonth(this.calendarMonth - 1); this.shouldAnimateDays = true; this.prepareCalendar(d); }
+  nextMonth() { const d = new Date(this.calendarYear, this.calendarMonth, 1); d.setMonth(this.calendarMonth + 1); this.shouldAnimateDays = true; this.prepareCalendar(d); }
+  selectDate(d: Date) { this.shouldAnimateDays = false; this.applySelectedDate(d); }
+  confirmSelectedDate() { this.closeDatePicker(); }
+  isCurrentMonth(d: Date): boolean { return isSameMonth(d, new Date(this.calendarYear, this.calendarMonth, 1)); }
+  isSelected(d: Date): boolean { return isSameDay(d, new Date(this.selectedDateISO)); }
+  isToday(d: Date): boolean { return isSameDay(d, new Date()); }
+  isPastDay(d: Date): boolean { const t = new Date(); const a = new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime(); const b = new Date(t.getFullYear(), t.getMonth(), t.getDate()).getTime(); return a < b; }
+  private keyForDate(d: Date): string { const y = d.getFullYear(); const m = String(d.getMonth() + 1).padStart(2, '0'); const day = String(d.getDate()).padStart(2, '0'); return `${y}-${m}-${day}`; }
+  isTrainedDay(d: Date): boolean { return this.trainedDayKeys.has(this.keyForDate(d)); }
+  getDayNumber(d: Date): string { return format(d, 'd'); }
+  getScheduledLabel(): string { return this.isSelectedToday ? 'Scheduled today' : `Scheduled on ${this.todayDateStr}`; }
+  private prepareCalendar(base: Date) {
+    this.calendarYear = base.getFullYear();
+    this.calendarMonth = base.getMonth();
+    const start = startOfWeek(startOfMonth(base), { weekStartsOn: 0 });
+    const end = endOfWeek(endOfMonth(base), { weekStartsOn: 0 });
+    const days: Date[] = [];
+    let cur = start;
+    while (cur <= end) { days.push(cur); cur = addDays(cur, 1); }
+    this.calendarDays = days;
+    const locale = this.selectedLanguage === 'es' ? 'es-ES' : 'en-US';
+    this.calendarMonthLabel = base.toLocaleString(locale, { month: 'long' });
+    const ref = new Date(2020, 5, 7);
+    this.weekdayLabels = Array.from({ length: 7 }, (_, i) => new Date(ref.getFullYear(), ref.getMonth(), ref.getDate() + i).toLocaleString(locale, { weekday: 'short' })).map(s => s.replace('.', '').toUpperCase());
+    this.refreshTrainedDaysForMonth(base);
+  }
+  async refreshTrainedDaysForMonth(base: Date) {
+    try {
+      const logs = await this.storage.getExerciseLogs();
+      const y = base.getFullYear();
+      const m = base.getMonth();
+      const set = new Set<string>();
+      for (const log of logs || []) {
+        const dt = new Date((log as any).date);
+        if (dt.getFullYear() === y && dt.getMonth() === m) {
+          set.add(this.keyForDate(dt));
+        }
+      }
+      this.trainedDayKeys = set;
+    } catch {}
+  }
+  private applySelectedDate(d: Date) {
+    this.selectedDateISO = d.toISOString();
+    const dd = String(d.getDate()).padStart(2, '0');
+    const mm = String(d.getMonth() + 1).padStart(2, '0');
+    const yyyy = d.getFullYear();
+    this.todayDateStr = `${dd}-${mm}-${yyyy}`;
+    this.todayDateShort = `${dd}-${mm}`;
+    this.selectedDateUS = `${mm}-${dd}-${yyyy}`;
+    this.isSelectedToday = isSameDay(d, new Date());
+    const displayLocale = this.selectedLanguage === 'es' ? 'es-ES' : 'en-US';
+    const dayNameDisplay = d.toLocaleString(displayLocale, { weekday: 'long' });
+    this.todayLabel = this.isSelectedToday ? `${dayNameDisplay}` : this.selectedDateUS;
+    const dayNameEn = d.toLocaleString('en-US', { weekday: 'long' });
+    this.bootstrapData(dayNameEn);
+    this.loadCompletedForToday();
+    this.prepareCalendar(d);
+  }
+
+  async loadCompletedForToday() { try { const key = this.getCompletionKey(); const res = await Preferences.get({ key }); const arr = res.value ? JSON.parse(res.value) as string[] : []; this.completedRoutineIds = new Set(arr); } catch {} }
+  async saveCompletedForToday() { try { const key = this.getCompletionKey(); const arr = Array.from(this.completedRoutineIds); await Preferences.set({ key, value: JSON.stringify(arr) }); } catch {} }
+  private getCompletionKey(): string { return `completed_routines_${this.todayDateStr}`; }
+  private getTrainingSelectionKey(): string { return `training_selection_${this.todayDateStr}`; }
+
+  async resetRoutineForToday(routine: any) {
+    try {
+      const confirmed = await this.alerts.confirm({
+        header: 'Reset Routine',
+        message: `Are you sure you want to reset "${routine?.name || 'this routine'}" for today? You will need to finish it again.`,
+        confirmText: 'Reset',
+        cancelText: 'Cancel'
+      });
+      if (!confirmed) return;
+      this.completedRoutineIds.delete(routine.id);
+      this.justCompletedIds.delete(routine.id);
+      this.selectedRoutineIds.delete(routine.id);
+      await this.saveCompletedForToday();
+      try { await Preferences.set({ key: this.getTrainingSelectionKey(), value: JSON.stringify(Array.from(this.selectedRoutineIds)) }); } catch {}
+      await this.alerts.success('Routine reset for today');
+    } catch {}
+  }
+
+  async finishTrainingAndMark() {
+    if (this.timerId) { clearInterval(this.timerId); this.timerId = null; }
+    const justNow = Array.from(this.selectedRoutineIds).filter(id => !this.completedRoutineIds.has(id));
+    this.justCompletedIds = new Set(justNow);
+    setTimeout(async () => {
+      justNow.forEach(id => this.completedRoutineIds.add(id));
+      this.justCompletedIds.clear();
+      this.selectedRoutineIds.clear();
+      try {
+        await this.saveCompletedForToday();
+        await this.storage.clearTrainingState();
+        await Preferences.remove({ key: this.getTrainingSelectionKey() });
+        await this.alerts.success('Training finished for today, good work!');
+      } catch {}
+    }, 1000);
+    this.elapsedSeconds = 0;
+  }
+
+  startTimer(initialSeconds?: number) {
+    this.elapsedSeconds = initialSeconds ?? 0;
+    if (this.timerId) { clearInterval(this.timerId); }
+    this.timerId = setInterval(() => { this.elapsedSeconds += 1; }, 1000);
+  }
+  private async resumeTrainingIfNeeded(dayName: string) {
+    try {
+      const state = await this.storage.getTrainingState();
+      if (state && state.inProgress && state.startedAt) {
+        const started = new Date(state.startedAt);
+        const now = new Date();
+        const diffSec = Math.max(0, Math.floor((now.getTime() - started.getTime()) / 1000));
+        const sel = await Preferences.get({ key: this.getTrainingSelectionKey() });
+        const selectedIds: string[] = sel.value ? JSON.parse(sel.value) : [];
+        this.selectedRoutineIds = new Set(selectedIds);
+        // Determine source routines: if store hasn't loaded yet, read from storage directly
+        let sourceRoutines = this.routinesToday;
+        if (!sourceRoutines || sourceRoutines.length === 0) {
+          const all = await this.storage.getRoutines();
+          sourceRoutines = all.filter(r => Array.isArray(r.days) ? r.days.includes(dayName) : r.frequency === 'daily');
+        }
+        if (this.selectedRoutineIds.size === 0) {
+          this.selectedRoutineIds = new Set(sourceRoutines.map(r => r.id));
+        }
+        const selected = sourceRoutines.filter(r => this.selectedRoutineIds.has(r.id) && !this.completedRoutineIds.has(r.id));
+        const list: any[] = [];
+        selected.forEach(r => r.exercises?.forEach((e: any) => list.push({ ...e })));
+        if (list.length > 0) {
+          this.todayExercises = list;
+          this.expandedIds = new Set(this.todayExercises.map(ex => ex.exerciseId));
+          this.trainingInitiated = true;
+          this.showTraining = true;
+          this.panelState = 'idle';
+          this.startTimer(diffSec);
+          this.resumeChecked = true;
+        }
+      }
+    } catch {}
   }
 }

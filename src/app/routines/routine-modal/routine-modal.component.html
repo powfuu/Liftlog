@@ -98,19 +98,33 @@
       <!-- Instant creation: exercise appears directly in the list -->
 
       <!-- Exercise List -->
-      <div class="accordion-list content-surface" *ngIf="exercises.length > 0">
-        <div
-          *ngFor="let exercise of exercises; let i = index"
-          class="exercise-item glass-item"
-          [class.slide-in]="animationState === 'entered'"
-          [attr.id]="'exercise-' + exercise.exerciseId">
+      <div class="accordion-list content-surface" *ngIf="exercises.length > 0" cdkDropList [cdkDropListData]="exercises" [cdkDropListOrientation]="'vertical'" (cdkDropListDropped)="dropCdk($event)">
+          <div
+        *ngFor="let exercise of exercises; let i = index; trackBy: trackByExerciseId"
+        class="exercise-item glass-item"
+        cdkDrag
+        cdkDragLockAxis="y"
+        [class.dragging]="draggingId===exercise.exerciseId"
+        (cdkDragStarted)="onDragStarted(exercise.exerciseId)"
+        (cdkDragEnded)="onDragEnded()"
+        (cdkDragEntered)="onDragEntered(i)"
+        (cdkDragExited)="onDragExited(i)"
+        [class.drop-target]="hoverIndex===i"
+        [class.open]="isExpanded(exercise)"
+        [class.slide-in]="animationState === 'entered'"
+        [attr.id]="'exercise-' + exercise.exerciseId">
 
           <!-- Exercise Accordion Header -->
           <div
             class="accordion-header p-4 border-b"
-            (click)="toggleExercise(exercise)"
+            (click)="onHeaderClick(exercise)"
             [attr.aria-expanded]="isExpanded(exercise)"
             [attr.aria-controls]="'exercise-details-' + exercise.exerciseId">
+            <button class="drag-handle" aria-label="Drag to reorder" (click)="$event.stopPropagation()">
+              <span class="dot"></span><span class="dot"></span>
+              <span class="dot"></span><span class="dot"></span>
+              <span class="dot"></span><span class="dot"></span>
+            </button>
             <div class="accordion-text">
               <div class="accordion-title">
                 {{ exercise.exerciseName?.trim() ? exercise.exerciseName : 'Exercise name' }}
@@ -185,8 +199,8 @@
                 </div>
               </div>
               <div class="unit-chips flex flex-col items-center gap-2">
-                <button class="unit-chip" [class.selected]="exercise.weightUnit==='lbs'" (click)="exercise.weightUnit='lbs'">lbs</button>
                 <button class="unit-chip" [class.selected]="exercise.weightUnit==='kg'" (click)="exercise.weightUnit='kg'">kg</button>
+                <button class="unit-chip" [class.selected]="exercise.weightUnit==='lbs'" (click)="exercise.weightUnit='lbs'">lbs</button>
               </div>
             </div>
 
@@ -199,6 +213,19 @@
                   placeholder="How did it feel? Any cues or adjustments?"
                   rows="3"
                   class="notes-textarea"></textarea>
+              </div>
+            </div>
+            <!-- Drag placeholder & preview -->
+            <div class="drag-placeholder" *cdkDragPlaceholder></div>
+            <div class="drag-preview" *cdkDragPreview>
+              <div class="accordion-header">
+                <button class="drag-handle" aria-label="Drag handle">
+                  <span class="dot"></span><span class="dot"></span>
+                  <span class="dot"></span><span class="dot"></span>
+                  <span class="dot"></span><span class="dot"></span>
+                </button>
+                <div class="accordion-title">{{ exercise.exerciseName?.trim() ? exercise.exerciseName : 'Exercise name' }}</div>
+                <div class="accordion-actions"></div>
               </div>
             </div>
           </div>

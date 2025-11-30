@@ -176,6 +176,7 @@ export class StorageService {
     try { await this.db.run(`ALTER TABLE routine_exercises ADD COLUMN notes TEXT DEFAULT ''`); } catch {}
     await this.db.execute(createRoutineDaysTable);
     await this.db.execute(createUserPreferencesTable);
+    try { await this.db.run(`ALTER TABLE routines ADD COLUMN programName TEXT`); } catch {}
   }
 
   /**
@@ -505,18 +506,34 @@ export class StorageService {
     if (!this.db) throw new Error('Database not initialized');
 
     // Save routine
-    await this.db.run(`
-      INSERT OR REPLACE INTO routines (id, name, description, frequency, isActive, createdAt, updatedAt)
-      VALUES (?, ?, ?, ?, ?, ?, ?)
-    `, [
-      routine.id,
-      routine.name,
-      routine.description,
-      routine.frequency,
-      routine.isActive ? 1 : 0,
-      routine.createdAt.toISOString(),
-      routine.updatedAt.toISOString()
-    ]);
+    try {
+      await this.db.run(`
+        INSERT OR REPLACE INTO routines (id, name, description, frequency, isActive, createdAt, updatedAt, programName)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+      `, [
+        routine.id,
+        routine.name,
+        routine.description,
+        routine.frequency,
+        routine.isActive ? 1 : 0,
+        routine.createdAt.toISOString(),
+        routine.updatedAt.toISOString(),
+        routine.programName || null
+      ]);
+    } catch {
+      await this.db.run(`
+        INSERT OR REPLACE INTO routines (id, name, description, frequency, isActive, createdAt, updatedAt)
+        VALUES (?, ?, ?, ?, ?, ?, ?)
+      `, [
+        routine.id,
+        routine.name,
+        routine.description,
+        routine.frequency,
+        routine.isActive ? 1 : 0,
+        routine.createdAt.toISOString(),
+        routine.updatedAt.toISOString()
+      ]);
+    }
 
     // Delete existing routine exercises
     await this.db.run('DELETE FROM routine_exercises WHERE routineId = ?', [routine.id]);
@@ -613,11 +630,46 @@ export class StorageService {
         days,
         isActive: Boolean(row.isActive),
         createdAt: new Date(row.createdAt),
-        updatedAt: new Date(row.updatedAt)
+        updatedAt: new Date(row.updatedAt),
+        programName: row.programName || undefined
       });
     }
 
     return routines;
+  }
+
+  /** Programs API (Preferences-backed) */
+  async getPrograms(): Promise<{ name: string; description?: string }[]> {
+    try {
+      const result = await Preferences.get({ key: 'programs' });
+      return result.value ? JSON.parse(result.value) : [];
+    } catch { return []; }
+  }
+
+  async saveProgram(program: { name: string; description?: string }): Promise<void> {
+    const list = await this.getPrograms();
+    const idx = list.findIndex(p => p.name === program.name);
+    if (idx >= 0) list[idx] = program; else list.push(program);
+    await Preferences.set({ key: 'programs', value: JSON.stringify(list) });
+  }
+
+  async deleteProgram(name: string): Promise<void> {
+    const list = await this.getPrograms();
+    const filtered = list.filter(p => p.name !== name);
+    await Preferences.set({ key: 'programs', value: JSON.stringify(filtered) });
+
+    if (this.isWebEnvironment()) {
+      const routines = await this.getRoutines();
+      const target = name.trim().toLowerCase();
+      const updated = routines.map(r => (((r.programName || '').trim().toLowerCase()) === target ? { ...r, programName: undefined } : r));
+      await Preferences.set({ key: 'routines', value: JSON.stringify(updated) });
+      return;
+    }
+
+    if (!this.db) return;
+    try {
+      await this.db.run('UPDATE routines SET programName = NULL WHERE programName = ?', [name]);
+    } catch {}
   }
 
   /**

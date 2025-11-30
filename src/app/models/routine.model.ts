@@ -1,6 +1,7 @@
 export interface Routine {
   id: string;
   name: string;
+  programName?: string;
   description?: string;
   exercises: RoutineExercise[];
   frequency: 'daily' | 'weekly' | 'custom';

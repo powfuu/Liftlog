@@ -4,6 +4,8 @@ import { IonHeader, IonToolbar, IonTitle, IonContent, IonBackButton, IonButtons,
 import { NotchHeaderComponent } from '../shared/notch-header/notch-header.component';
 import { add, barbell, list, trash, create, chevronForward, refresh, calendar } from 'ionicons/icons';
 import { addIcons } from 'ionicons';
+import { Router } from '@angular/router';
+import { ActivatedRoute } from '@angular/router';
 import { RoutineModalComponent } from './routine-modal/routine-modal.component';
 import { Routine } from '../models/routine.model';
 import { StorageService } from '../services/storage.service';
@@ -21,17 +23,21 @@ import { AlertService } from '../services/alert.service';
 })
 export class RoutinesPage implements OnInit {
   routines: Routine[] = [];
+  filteredRoutines: Routine[] = [];
   isLoading = true;
   removingId: string | null = null;
   enteringId: string | null = null;
   initialAnimation = false;
   todayDateShort = '';
+  currentProgram: string | null = null;
 
   constructor(
     private modalController: ModalController,
     private storageService: StorageService,
     private alerts: AlertService,
-    private store: StoreService
+    private store: StoreService,
+    private route: ActivatedRoute,
+    private router: Router
   ) {
     addIcons({ add, barbell, list, trash, create, chevronForward, refresh, calendar });
   }
@@ -42,12 +48,20 @@ export class RoutinesPage implements OnInit {
     const mm = String(today.getMonth() + 1).padStart(2, '0');
     this.todayDateShort = `${dd}-${mm}`;
     await this.loadRoutines();
+    this.route.queryParamMap.subscribe(params => {
+      const program = params.get('program');
+      this.currentProgram = program;
+      this.applyProgramFilter(program);
+    });
   }
 
   async loadRoutines() {
     try {
       this.routines = await this.storageService.getRoutines();
       this.store.setRoutines(this.routines);
+      const program = this.route.snapshot.queryParamMap.get('program');
+      this.currentProgram = program;
+      this.applyProgramFilter(program);
     } catch (error) {
       console.error('Error loading routines:', error);
     } finally {
@@ -57,11 +71,24 @@ export class RoutinesPage implements OnInit {
     }
   }
 
+  private applyProgramFilter(program: string | null) {
+    const norm = (program || '').trim().toLowerCase();
+    if (norm) {
+      this.filteredRoutines = this.routines.filter(r => ((r.programName || 'General').trim().toLowerCase()) === norm);
+    } else {
+      this.filteredRoutines = this.routines;
+    }
+  }
+
+  goToPrograms() { this.router.navigate(['/tabs/programs']); }
+
   async createRoutine() {
     try {
+      const program = this.route.snapshot.queryParamMap.get('program') || 'General';
       const modal = await this.modalController.create({
         component: RoutineModalComponent,
-        cssClass: 'routine-modal-fullscreen'
+        cssClass: 'routine-modal-fullscreen',
+        componentProps: { programName: program }
       });
 
       modal.onDidDismiss().then(async (result) => {
@@ -74,6 +101,7 @@ export class RoutinesPage implements OnInit {
             this.routines = this.routines.map(r => r.id === result.data.id ? result.data : r);
           }
           this.store.setRoutines(this.routines);
+          this.applyProgramFilter(this.route.snapshot.queryParamMap.get('program'));
           await this.nextFrame();
           this.enteringId = result.data.id;
         }
@@ -98,6 +126,7 @@ export class RoutinesPage implements OnInit {
           await this.nextFrame();
           this.routines = this.routines.map(r => r.id === result.data.id ? result.data : r);
           this.store.setRoutines(this.routines);
+          this.applyProgramFilter(this.route.snapshot.queryParamMap.get('program'));
           await this.nextFrame();
           this.enteringId = result.data.id;
         }
@@ -132,6 +161,8 @@ export class RoutinesPage implements OnInit {
       await this.alerts.success(`${routine.name} has been deleted correctly`);
       const latest = await this.storageService.getRoutines();
       this.store.setRoutines(latest);
+      this.routines = latest;
+      this.applyProgramFilter(this.route.snapshot.queryParamMap.get('program'));
     } catch (error) {
       console.error('Error deleting routine:', error);
     } finally {
@@ -142,6 +173,7 @@ export class RoutinesPage implements OnInit {
   onCardAnimationEnd(routine: Routine) {
     if (this.removingId === routine.id) {
       this.routines = this.routines.filter(r => r.id !== routine.id);
+      this.filteredRoutines = this.filteredRoutines.filter(r => r.id !== routine.id);
       this.removingId = null;
       return;
     }
@@ -189,7 +221,8 @@ export class RoutinesPage implements OnInit {
   }
 
   getTotalExerciseCount(): number {
-    return this.routines.reduce((sum, routine) => sum + this.getTotalExercises(routine), 0);
+    const list = this.currentProgram ? this.filteredRoutines : this.routines;
+    return list.reduce((sum, routine) => sum + this.getTotalExercises(routine), 0);
   }
 
   getDaysShort(days: string[] = []): string {

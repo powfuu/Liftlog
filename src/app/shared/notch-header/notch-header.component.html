@@ -1,5 +1,8 @@
 <div class="notch-header">
   <div class="notch-title">
+    <button *ngIf="leadingActionIcon" class="notch-leading" (click)="leadingAction.emit()" aria-label="Back">
+      <ion-icon [name]="leadingActionIcon"></ion-icon>
+    </button>
     <ion-icon *ngIf="icon" [name]="icon"></ion-icon>
     <ng-container *ngIf="brandRed && brandWhite; else plainTitle">
       <span class="brand"><span class="brand-red">{{ brandRed }}</span><span class="brand-white">{{ brandWhite }}</span></span>
@@ -8,13 +11,19 @@
       <span>{{ title }}</span>
     </ng-template>
   </div>
-  <div class="notch-actions" *ngIf="actionIcon">
-    <button class="notch-action" (click)="action.emit()">
+  <div class="notch-actions" *ngIf="actionIcon || secondaryActionIcon">
+    <button *ngIf="actionIcon" class="notch-action" (click)="action.emit()">
       <ion-icon [name]="actionIcon"></ion-icon>
+    </button>
+    <button *ngIf="secondaryActionIcon" class="notch-action" (click)="secondaryAction.emit()">
+      <ion-icon [name]="secondaryActionIcon"></ion-icon>
     </button>
   </div>
   <div class="notch-subtitle" *ngIf="subtitleLabel">
-    <span class="today-mark">Today</span><span class="subtitle-dot"></span><span class="day-label">{{ subtitleLabel }}</span>
+    <ng-container *ngIf="showTodayMark">
+      <span class="today-mark">Today</span><span class="subtitle-dot"></span>
+    </ng-container>
+    <span class="day-label">{{ subtitleLabel }}</span>
   </div>
   <div class="notch-meta" *ngIf="items && items.length">
     <div class="notch-chip" *ngFor="let it of items">
