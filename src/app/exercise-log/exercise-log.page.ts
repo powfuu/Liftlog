@@ -26,12 +26,12 @@ import { UtilService } from '../services/util.service';
 })
 export class ExerciseLogPage implements OnInit, OnDestroy {
   private destroy$ = new Subject<void>();
-  
+
   exercises$: Observable<Exercise[]>;
   selectedExercise: Exercise | null = null;
-  weightUnit: 'lbs' | 'kg' = 'lbs';
+  weightUnit: 'lb' | 'kg' = 'lb';
   sets: ExerciseSet[] = [
-    { reps: 10, weight: 0, weightUnit: 'lbs', isPersonalRecord: false }
+    { reps: 10, weight: 0, weightUnit: 'lb', isPersonalRecord: false }
   ];
   notes = '';
   isLoading = false;
@@ -41,7 +41,7 @@ export class ExerciseLogPage implements OnInit, OnDestroy {
     private utilService: UtilService
   ) {
     addIcons({ add, remove, swapVertical });
-    
+
     this.exercises$ = this.store.select(state => state.exercises);
   }
 
@@ -70,7 +70,7 @@ export class ExerciseLogPage implements OnInit, OnDestroy {
         equipment: 'barbell',
         description: 'Flat bench barbell press',
         isCustom: false,
-        defaultWeightUnit: 'lbs',
+        defaultWeightUnit: 'lb',
         createdAt: new Date(),
         updatedAt: new Date()
       },
@@ -81,7 +81,7 @@ export class ExerciseLogPage implements OnInit, OnDestroy {
         equipment: 'barbell',
         description: 'Back squat',
         isCustom: false,
-        defaultWeightUnit: 'lbs',
+        defaultWeightUnit: 'lb',
         createdAt: new Date(),
         updatedAt: new Date()
       },
@@ -92,12 +92,12 @@ export class ExerciseLogPage implements OnInit, OnDestroy {
         equipment: 'barbell',
         description: 'Conventional deadlift',
         isCustom: false,
-        defaultWeightUnit: 'lbs',
+        defaultWeightUnit: 'lb',
         createdAt: new Date(),
         updatedAt: new Date()
       }
     ];
-    
+
     this.store.setExercises(defaultExercises);
   }
 
@@ -133,14 +133,14 @@ export class ExerciseLogPage implements OnInit, OnDestroy {
   }
 
   toggleWeightUnit() {
-    const newUnit = this.weightUnit === 'lbs' ? 'kg' : 'lbs';
-    
+    const newUnit = this.weightUnit === 'lb' ? 'kg' : 'lb';
+
     // Convert all set weights
     this.sets.forEach(set => {
       set.weight = this.utilService.convertWeight(set.weight, this.weightUnit, newUnit);
       set.weightUnit = newUnit;
     });
-    
+
     this.weightUnit = newUnit;
   }
 
@@ -168,7 +168,7 @@ export class ExerciseLogPage implements OnInit, OnDestroy {
     try {
       const totalVolume = this.utilService.calculateTotalVolume(this.sets);
       const maxWeight = this.utilService.findMaxWeight(this.sets);
-      
+
       const log: Omit<ExerciseLog, 'id' | 'createdAt'> = {
         exerciseId: this.selectedExercise.id,
         sets: this.sets,
@@ -185,13 +185,13 @@ export class ExerciseLogPage implements OnInit, OnDestroy {
       };
 
       this.store.addExerciseLog(completeLog);
-      
+
       // Reset form
       this.resetForm();
-      
+
       // Show success message (would use toast in real app)
       console.log('Exercise logged successfully!');
-      
+
     } catch (error) {
       console.error('Error saving exercise log:', error);
     } finally {

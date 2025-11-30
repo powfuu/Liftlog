@@ -85,7 +85,7 @@ export class StorageService {
         equipment TEXT NOT NULL,
         description TEXT,
         isCustom BOOLEAN DEFAULT 0,
-        defaultWeightUnit TEXT NOT NULL DEFAULT 'lbs' CHECK (defaultWeightUnit IN ('lbs', 'kg')),
+        defaultWeightUnit TEXT NOT NULL DEFAULT 'lb' CHECK (defaultWeightUnit IN ('lb', 'kg')),
         createdAt DATETIME DEFAULT CURRENT_TIMESTAMP,
         updatedAt DATETIME DEFAULT CURRENT_TIMESTAMP
       );
@@ -111,7 +111,7 @@ export class StorageService {
         logId TEXT NOT NULL,
         reps INTEGER NOT NULL,
         weight REAL NOT NULL,
-        weightUnit TEXT NOT NULL CHECK (weightUnit IN ('lbs', 'kg')),
+        weightUnit TEXT NOT NULL CHECK (weightUnit IN ('lb', 'kg')),
         isPersonalRecord BOOLEAN DEFAULT 0,
         orderIndex INTEGER NOT NULL,
         PRIMARY KEY (logId, orderIndex),
@@ -139,7 +139,7 @@ export class StorageService {
         targetReps INTEGER NOT NULL,
         orderIndex INTEGER NOT NULL,
         weight REAL DEFAULT 0,
-        weightUnit TEXT DEFAULT 'lbs',
+        weightUnit TEXT DEFAULT 'lb',
         reserveReps INTEGER DEFAULT 0,
         notes TEXT DEFAULT '',
         PRIMARY KEY (routineId, exerciseId),
@@ -171,7 +171,7 @@ export class StorageService {
     await this.db.execute(createRoutinesTable);
     await this.db.execute(createRoutineExercisesTable);
     try { await this.db.run(`ALTER TABLE routine_exercises ADD COLUMN weight REAL DEFAULT 0`); } catch {}
-    try { await this.db.run(`ALTER TABLE routine_exercises ADD COLUMN weightUnit TEXT DEFAULT 'lbs'`); } catch {}
+    try { await this.db.run(`ALTER TABLE routine_exercises ADD COLUMN weightUnit TEXT DEFAULT 'lb'`); } catch {}
     try { await this.db.run(`ALTER TABLE routine_exercises ADD COLUMN reserveReps INTEGER DEFAULT 0`); } catch {}
     try { await this.db.run(`ALTER TABLE routine_exercises ADD COLUMN notes TEXT DEFAULT ''`); } catch {}
     await this.db.execute(createRoutineDaysTable);
@@ -185,16 +185,16 @@ export class StorageService {
     if (!this.db) throw new Error('Database not initialized');
 
     const defaultExercises = [
-      { id: 'bench_press', name: 'Bench Press', muscleGroup: 'chest', equipment: 'barbell', description: 'Flat bench barbell press', defaultWeightUnit: 'lbs' },
-      { id: 'squat', name: 'Squat', muscleGroup: 'legs', equipment: 'barbell', description: 'Back squat', defaultWeightUnit: 'lbs' },
-      { id: 'deadlift', name: 'Deadlift', muscleGroup: 'back', equipment: 'barbell', description: 'Conventional deadlift', defaultWeightUnit: 'lbs' },
-      { id: 'overhead_press', name: 'Overhead Press', muscleGroup: 'shoulders', equipment: 'barbell', description: 'Standing overhead press', defaultWeightUnit: 'lbs' },
-      { id: 'pull_up', name: 'Pull Up', muscleGroup: 'back', equipment: 'bodyweight', description: 'Standard pull-up', defaultWeightUnit: 'lbs' },
-      { id: 'dumbbell_curl', name: 'Dumbbell Curl', muscleGroup: 'arms', equipment: 'dumbbell', description: 'Bicep curl with dumbbells', defaultWeightUnit: 'lbs' },
-      { id: 'tricep_dip', name: 'Tricep Dip', muscleGroup: 'arms', equipment: 'bodyweight', description: 'Parallel bar dips', defaultWeightUnit: 'lbs' },
-      { id: 'leg_press', name: 'Leg Press', muscleGroup: 'legs', equipment: 'machine', description: 'Machine leg press', defaultWeightUnit: 'lbs' },
-      { id: 'lat_pulldown', name: 'Lat Pulldown', muscleGroup: 'back', equipment: 'cable', description: 'Cable lat pulldown', defaultWeightUnit: 'lbs' },
-      { id: 'chest_fly', name: 'Chest Fly', muscleGroup: 'chest', equipment: 'dumbbell', description: 'Dumbbell chest fly', defaultWeightUnit: 'lbs' }
+      { id: 'bench_press', name: 'Bench Press', muscleGroup: 'chest', equipment: 'barbell', description: 'Flat bench barbell press', defaultWeightUnit: 'lb' },
+      { id: 'squat', name: 'Squat', muscleGroup: 'legs', equipment: 'barbell', description: 'Back squat', defaultWeightUnit: 'lb' },
+      { id: 'deadlift', name: 'Deadlift', muscleGroup: 'back', equipment: 'barbell', description: 'Conventional deadlift', defaultWeightUnit: 'lb' },
+      { id: 'overhead_press', name: 'Overhead Press', muscleGroup: 'shoulders', equipment: 'barbell', description: 'Standing overhead press', defaultWeightUnit: 'lb' },
+      { id: 'pull_up', name: 'Pull Up', muscleGroup: 'back', equipment: 'bodyweight', description: 'Standard pull-up', defaultWeightUnit: 'lb' },
+      { id: 'dumbbell_curl', name: 'Dumbbell Curl', muscleGroup: 'arms', equipment: 'dumbbell', description: 'Bicep curl with dumbbells', defaultWeightUnit: 'lb' },
+      { id: 'tricep_dip', name: 'Tricep Dip', muscleGroup: 'arms', equipment: 'bodyweight', description: 'Parallel bar dips', defaultWeightUnit: 'lb' },
+      { id: 'leg_press', name: 'Leg Press', muscleGroup: 'legs', equipment: 'machine', description: 'Machine leg press', defaultWeightUnit: 'lb' },
+      { id: 'lat_pulldown', name: 'Lat Pulldown', muscleGroup: 'back', equipment: 'cable', description: 'Cable lat pulldown', defaultWeightUnit: 'lb' },
+      { id: 'chest_fly', name: 'Chest Fly', muscleGroup: 'chest', equipment: 'dumbbell', description: 'Dumbbell chest fly', defaultWeightUnit: 'lb' }
     ];
 
     for (const exercise of defaultExercises) {
@@ -212,7 +212,7 @@ export class StorageService {
     if (!this.db) throw new Error('Database not initialized');
 
     const defaultPreferences = [
-      { key: 'weight_unit', value: 'lbs' },
+      { key: 'weight_unit', value: 'lb' },
       { key: 'theme', value: 'dark' },
       { key: 'date_format', value: 'MM/DD/YYYY' },
       { key: 'notifications_enabled', value: 'true' }
@@ -331,7 +331,7 @@ export class StorageService {
   async getUserPreferences(): Promise<UserPreferences> {
     // Always return fixed values - no settings needed
     return {
-      weightUnit: 'lbs',
+      weightUnit: 'lb',
       theme: 'dark',
       dateFormat: 'MM/DD/YYYY',
       notificationsEnabled: true
@@ -365,7 +365,7 @@ export class StorageService {
         equipment: 'barbell',
         description: 'Flat bench barbell press',
         isCustom: false,
-        defaultWeightUnit: 'lbs',
+        defaultWeightUnit: 'lb',
         createdAt: new Date(),
         updatedAt: new Date()
       },
@@ -376,7 +376,7 @@ export class StorageService {
         equipment: 'barbell',
         description: 'Back squat',
         isCustom: false,
-        defaultWeightUnit: 'lbs',
+        defaultWeightUnit: 'lb',
         createdAt: new Date(),
         updatedAt: new Date()
       },
@@ -387,7 +387,7 @@ export class StorageService {
         equipment: 'barbell',
         description: 'Conventional deadlift',
         isCustom: false,
-        defaultWeightUnit: 'lbs',
+        defaultWeightUnit: 'lb',
         createdAt: new Date(),
         updatedAt: new Date()
       },
@@ -398,7 +398,7 @@ export class StorageService {
         equipment: 'barbell',
         description: 'Standing overhead press',
         isCustom: false,
-        defaultWeightUnit: 'lbs',
+        defaultWeightUnit: 'lb',
         createdAt: new Date(),
         updatedAt: new Date()
       },
@@ -409,7 +409,7 @@ export class StorageService {
         equipment: 'bodyweight',
         description: 'Standard pull-up',
         isCustom: false,
-        defaultWeightUnit: 'lbs',
+        defaultWeightUnit: 'lb',
         createdAt: new Date(),
         updatedAt: new Date()
       }
@@ -425,9 +425,9 @@ export class StorageService {
         id: 'log_1',
         exerciseId: 'bench_press',
         sets: [
-          { reps: 10, weight: 135, weightUnit: 'lbs', isPersonalRecord: false },
-          { reps: 8, weight: 145, weightUnit: 'lbs', isPersonalRecord: false },
-          { reps: 6, weight: 155, weightUnit: 'lbs', isPersonalRecord: true }
+          { reps: 10, weight: 135, weightUnit: 'lb', isPersonalRecord: false },
+          { reps: 8, weight: 145, weightUnit: 'lb', isPersonalRecord: false },
+          { reps: 6, weight: 155, weightUnit: 'lb', isPersonalRecord: true }
         ],
         notes: 'Great session!',
         date: new Date(),
@@ -439,9 +439,9 @@ export class StorageService {
         id: 'log_2',
         exerciseId: 'squat',
         sets: [
-          { reps: 12, weight: 185, weightUnit: 'lbs', isPersonalRecord: false },
-          { reps: 10, weight: 205, weightUnit: 'lbs', isPersonalRecord: false },
-          { reps: 8, weight: 225, weightUnit: 'lbs', isPersonalRecord: false }
+          { reps: 12, weight: 185, weightUnit: 'lb', isPersonalRecord: false },
+          { reps: 10, weight: 205, weightUnit: 'lb', isPersonalRecord: false },
+          { reps: 8, weight: 225, weightUnit: 'lb', isPersonalRecord: false }
         ],
         notes: 'Feeling strong',
         date: new Date(),
@@ -457,7 +457,7 @@ export class StorageService {
    */
   private getMockUserPreferences(): UserPreferences {
     return {
-      weightUnit: 'lbs',
+      weightUnit: 'lb',
       theme: 'dark',
       dateFormat: 'MM/DD/YYYY',
       notificationsEnabled: true,
@@ -548,7 +548,7 @@ export class StorageService {
         exercise.targetReps,
         exercise.order,
         (isNaN(Number(exercise.weight)) ? 0 : Number(exercise.weight)),
-        (exercise.weightUnit || 'lbs'),
+        (exercise.weightUnit || 'lb'),
         (isNaN(Number((exercise.reserveReps as number))) ? 0 : Number((exercise.reserveReps as number))),
         exercise.notes || ''
       ]);
@@ -592,7 +592,7 @@ export class StorageService {
         exerciseId: ex.exerciseId,
         exerciseName: ex.exerciseName,
         weight: typeof ex.weight === 'number' ? ex.weight : 0,
-        weightUnit: ex.weightUnit || ex.defaultWeightUnit || 'lbs',
+        weightUnit: ex.weightUnit || ex.defaultWeightUnit || 'lb',
         targetSets: ex.targetSets,
         targetReps: ex.targetReps,
         reserveReps: typeof ex.reserveReps === 'number' ? ex.reserveReps : 0,
@@ -669,7 +669,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { IonContent, IonIcon, IonModal, IonDatetime, IonPopover } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
-import { flame, calendar, barbell, informationCircle, close, refresh, chevronDown, checkmark, add, remove, funnel, apps, globe, chevronBack, chevronForward } from 'ionicons/icons';
+import { flame, calendar, barbell, informationCircle, close, refresh, chevronDown, chevronUp, checkmark, add, remove, funnel, apps, globe, chevronBack, chevronForward, trash, swapVertical } from 'ionicons/icons';
 import { Router } from '@angular/router';
 import { StoreService } from '../services/store.service';
 import { AlertService } from '../services/alert.service';
@@ -702,9 +702,10 @@ export class HomePage implements OnInit {
   private elapsedSeconds = 0;
   private timerId: any;
   private resumeChecked = false;
+  private focusedInputs = new Set<string>();
 
   constructor(private router: Router, private store: StoreService, private storage: StorageService, private alerts: AlertService) {
-    addIcons({ flame, calendar, barbell, informationCircle, close, refresh, chevronDown, checkmark, add, remove, funnel, apps, globe, chevronBack, chevronForward });
+    addIcons({ flame, calendar, barbell, informationCircle, close, refresh, chevronDown, chevronUp, checkmark, add, remove, funnel, apps, globe, chevronBack, chevronForward, trash, swapVertical });
   }
 
   async ngOnInit() {
@@ -738,7 +739,101 @@ export class HomePage implements OnInit {
   isExpanded(ex: any): boolean { return this.expandedIds.has(ex.exerciseId); }
   toggleExercise(ex: any) { if (this.expandedIds.has(ex.exerciseId)) { this.expandedIds.delete(ex.exerciseId); } else { this.expandedIds.add(ex.exerciseId); } }
   adjustValue(ex: any, field: keyof any, delta: number, min: number, max: number) { const next = Math.max(min, Math.min(max, Number(ex[field]) + delta)); (ex as any)[field] = next; this.persistExercise(ex); }
-  setUnit(ex: any, unit: 'lbs'|'kg') { ex.weightUnit = unit; this.persistExercise(ex); }
+  setUnit(ex: any, unit: 'lb'|'kg') { ex.weightUnit = unit; this.persistExercise(ex); }
+
+  trackBySetIndex(index: number): number { return index; }
+  private key(ex: any, index: number, field: 'reps' | 'weight' | 'rir'): string { return `${ex.exerciseId}:${index}:${field}`; }
+  private isInputFocused(ex: any, index: number, field: 'reps' | 'weight' | 'rir'): boolean { return this.focusedInputs.has(this.key(ex, index, field)); }
+  onInputFocus(ex: any, index: number, field: 'reps' | 'weight' | 'rir') { this.focusedInputs.add(this.key(ex, index, field)); }
+  onInputBlur(ex: any, index: number, field: 'reps' | 'weight' | 'rir') { this.focusedInputs.delete(this.key(ex, index, field)); }
+  getDisplayValue(ex: any, index: number, field: 'reps' | 'weight' | 'rir'): any {
+    const list = this.getSets(ex);
+    if (index < 0 || index >= list.length) return 0;
+    const v = (list[index] as any)[field];
+    if (this.isInputFocused(ex, index, field) && Number(v) === 0) return '';
+    return v;
+  }
+
+  getSets(ex: any): Array<{ reps: number; weight: number; rir: number; unit?: 'kg' | 'lb'; unitOpen?: boolean; unitPulse?: boolean }> {
+    const arr = (ex as any).sets as Array<{ reps: number; weight: number; rir: number; unit?: 'kg' | 'lb' }>;
+    return Array.isArray(arr) ? arr : [];
+  }
+  addSet(ex: any) {
+    const list = this.getSets(ex);
+    const next = { reps: ex.targetReps || 10, weight: ex.weight || 0, rir: ex.reserveReps || 0, unit: ex.weightUnit || 'kg' } as any;
+    const cur = Array.isArray((ex as any).sets) ? (ex as any).sets : [];
+    (ex as any).sets = [...cur, next];
+    ex.targetSets = this.getSets(ex).length;
+    this.persistExercise(ex);
+  }
+  removeSet(ex: any, index: number) {
+    const list = this.getSets(ex);
+    if (index < 0 || index >= list.length) return;
+    const cur = [...list];
+    cur.splice(index, 1);
+    (ex as any).sets = cur;
+    ex.targetSets = this.getSets(ex).length;
+    this.persistExercise(ex);
+  }
+  updateSetValue(ex: any, index: number, field: 'reps' | 'weight' | 'rir', value: any) {
+    const list = this.getSets(ex);
+    if (index < 0 || index >= list.length) return;
+    let v = Number(value);
+    if (Number.isNaN(v)) v = 0;
+    if (field === 'reps') {
+      v = Math.max(0, Math.min(200, Math.round(v)));
+    } else if (field === 'weight') {
+      v = Math.max(0, Math.min(1000, Number(v.toFixed(2))));
+    } else if (field === 'rir') {
+      v = Math.max(0, Math.min(10, Math.round(v)));
+    }
+    const cur = [...list];
+    const item = { ...cur[index] } as any;
+    item[field] = v;
+    cur[index] = item;
+    (ex as any).sets = cur;
+    ex.targetSets = this.getSets(ex).length;
+    this.persistExercise(ex);
+  }
+  setUnitForSet(ex: any, index: number, unit: 'kg' | 'lb') {
+    const list = this.getSets(ex);
+    if (index < 0 || index >= list.length) return;
+    const cur = [...list];
+    const item = { ...(cur[index] as any) };
+    const prev: 'kg' | 'lb' = (item.unit as any) || ex.weightUnit || 'kg';
+    if (prev === unit) return;
+    const factor = unit === 'lb' ? 2.20462 : 1 / 2.20462;
+    item.weight = Number((Number(item.weight || 0) * factor).toFixed(1));
+    item.unit = unit;
+    item.unitPulse = true;
+    cur[index] = item as any;
+    (ex as any).sets = cur;
+    this.closeUnitDropdown(ex, index);
+    setTimeout(() => {
+      const l = this.getSets(ex);
+      if (index < 0 || index >= l.length) return;
+      const c = [...l];
+      const it = { ...(c[index] as any) };
+      it.unitPulse = false;
+      c[index] = it;
+      (ex as any).sets = c;
+    }, 260);
+    this.persistExercise(ex);
+  }
+  isUnitDropdownOpen(ex: any, index: number): boolean { const list = this.getSets(ex); const item = list[index] as any; return !!(item && item.unitOpen); }
+  toggleUnitDropdown(ex: any, index: number) { const list = this.getSets(ex); if (index < 0 || index >= list.length) return; const cur = [...list]; const item = { ...(cur[index] as any) }; item.unitOpen = !item.unitOpen; cur[index] = item; (ex as any).sets = cur; }
+  closeUnitDropdown(ex: any, index: number) { const list = this.getSets(ex); if (index < 0 || index >= list.length) return; const cur = [...list]; const item = { ...(cur[index] as any) }; item.unitOpen = false; cur[index] = item; (ex as any).sets = cur; }
+  isUnitJustSelected(ex: any, index: number): boolean { const list = this.getSets(ex); const item = list[index] as any; return !!(item && item.unitPulse); }
+  setUnitForExercise(ex: any, unit: 'kg' | 'lb') {
+    const prev = ex.weightUnit || 'kg';
+    if (prev === unit) return;
+    const factor = unit === 'lb' ? 2.20462 : 1 / 2.20462;
+    const sets = this.getSets(ex).map(s => ({ ...s, weight: Number((Number(s.weight || 0) * factor).toFixed(1)) }));
+    (ex as any).sets = sets;
+    ex.weight = Number(((ex.weight || 0) * factor).toFixed(1));
+    ex.weightUnit = unit;
+    this.persistExercise(ex);
+  }
   async persistExercise(ex: any) {
     try {
       const routines = await this.storage.getRoutines();
@@ -749,7 +844,7 @@ export class HomePage implements OnInit {
           r.exercises[idx] = {
             ...r.exercises[idx],
             weight: Number(ex.weight) || 0,
-            weightUnit: ex.weightUnit || 'lbs',
+            weightUnit: ex.weightUnit || 'lb',
             targetSets: Number(ex.targetSets) || 0,
             targetReps: Number(ex.targetReps) || 0,
             reserveReps: Number(ex.reserveReps) || 0,
@@ -792,6 +887,16 @@ export class HomePage implements OnInit {
   getRoutineNameForExercise(exerciseId: string): string | undefined { const r = this.routinesToday.find(rt => Array.isArray(rt.exercises) && rt.exercises.some((e: any) => e.exerciseId === exerciseId)); return r?.name; }
   getDaysPerWeekLabel(routine: any): string { const days = routine?.days || []; if (Array.isArray(days) && days.length > 0) { return `${days.length} days/week`; } switch (routine?.frequency) { case 'daily': return '7 days/week'; case 'weekly': return '1 day/week'; default: return 'Custom'; } }
 
+  getSelectedProgramLabel(): string {
+    if (this.selectedRoutineIds.size === 0) return 'Program';
+    const selected = this.routinesToday.filter(r => this.selectedRoutineIds.has(r.id));
+    if (selected.length === 1) {
+      return selected[0].programName || 'General';
+    }
+    const names = Array.from(new Set(selected.map(r => r.programName || 'General')));
+    return names.length === 1 ? names[0] : 'Multiple programs';
+  }
+
   selectedRoutineIds = new Set<string>();
   completedRoutineIds = new Set<string>();
   justCompletedIds = new Set<string>();
@@ -819,6 +924,7 @@ export class HomePage implements OnInit {
   selectedLanguage: 'en'|'es' = 'en';
   shouldAnimateDays = false;
   isSelectedToday = true;
+  isSelectedFuture = false;
   selectedDateUS = '';
   openDatePicker(ev?: Event) { this.datePopoverEvent = ev; this.showDatePicker = true; this.shouldAnimateDays = true; }
   closeDatePicker() { this.showDatePicker = false; }
@@ -883,6 +989,12 @@ export class HomePage implements OnInit {
     this.todayDateShort = `${dd}-${mm}`;
     this.selectedDateUS = `${mm}-${dd}-${yyyy}`;
     this.isSelectedToday = isSameDay(d, new Date());
+    {
+      const t = new Date();
+      const a = new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime();
+      const b = new Date(t.getFullYear(), t.getMonth(), t.getDate()).getTime();
+      this.isSelectedFuture = a > b;
+    }
     const displayLocale = this.selectedLanguage === 'es' ? 'es-ES' : 'en-US';
     const dayNameDisplay = d.toLocaleString(displayLocale, { weekday: 'long' });
     this.todayLabel = this.isSelectedToday ? `${dayNameDisplay}` : this.selectedDateUS;

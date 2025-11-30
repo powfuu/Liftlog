@@ -5,7 +5,7 @@ export interface Exercise {
   equipment: EquipmentType;
   description?: string;
   isCustom: boolean;
-  defaultWeightUnit: 'lbs' | 'kg';
+  defaultWeightUnit: 'lb' | 'kg';
   createdAt: Date;
   updatedAt: Date;
 }
@@ -25,20 +25,20 @@ export interface ExerciseLog {
 export interface ExerciseSet {
   reps: number;
   weight: number;
-  weightUnit: 'lbs' | 'kg';
+  weightUnit: 'lb' | 'kg';
   isPersonalRecord: boolean;
 }
 
-export type MuscleGroup = 
+export type MuscleGroup =
   | 'chest'
-  | 'back' 
+  | 'back'
   | 'shoulders'
   | 'arms'
   | 'legs'
   | 'core'
   | 'full_body';
 
-export type EquipmentType = 
+export type EquipmentType =
   | 'barbell'
   | 'dumbbell'
   | 'machine'

@@ -56,10 +56,10 @@ export class StorageService {
 
       // Create tables
       await this.createTables();
-      
+
       // Insert default exercises
       await this.insertDefaultExercises();
-      
+
       // Insert default preferences
       await this.insertDefaultPreferences();
 
@@ -85,7 +85,7 @@ export class StorageService {
         equipment TEXT NOT NULL,
         description TEXT,
         isCustom BOOLEAN DEFAULT 0,
-        defaultWeightUnit TEXT NOT NULL DEFAULT 'lbs' CHECK (defaultWeightUnit IN ('lbs', 'kg')),
+        defaultWeightUnit TEXT NOT NULL DEFAULT 'lb' CHECK (defaultWeightUnit IN ('lb', 'kg')),
         createdAt DATETIME DEFAULT CURRENT_TIMESTAMP,
         updatedAt DATETIME DEFAULT CURRENT_TIMESTAMP
       );
@@ -111,7 +111,7 @@ export class StorageService {
         logId TEXT NOT NULL,
         reps INTEGER NOT NULL,
         weight REAL NOT NULL,
-        weightUnit TEXT NOT NULL CHECK (weightUnit IN ('lbs', 'kg')),
+        weightUnit TEXT NOT NULL CHECK (weightUnit IN ('lb', 'kg')),
         isPersonalRecord BOOLEAN DEFAULT 0,
         orderIndex INTEGER NOT NULL,
         PRIMARY KEY (logId, orderIndex),
@@ -139,7 +139,7 @@ export class StorageService {
         targetReps INTEGER NOT NULL,
         orderIndex INTEGER NOT NULL,
         weight REAL DEFAULT 0,
-        weightUnit TEXT DEFAULT 'lbs',
+        weightUnit TEXT DEFAULT 'lb',
         reserveReps INTEGER DEFAULT 0,
         notes TEXT DEFAULT '',
         PRIMARY KEY (routineId, exerciseId),
@@ -171,7 +171,7 @@ export class StorageService {
     await this.db.execute(createRoutinesTable);
     await this.db.execute(createRoutineExercisesTable);
     try { await this.db.run(`ALTER TABLE routine_exercises ADD COLUMN weight REAL DEFAULT 0`); } catch {}
-    try { await this.db.run(`ALTER TABLE routine_exercises ADD COLUMN weightUnit TEXT DEFAULT 'lbs'`); } catch {}
+    try { await this.db.run(`ALTER TABLE routine_exercises ADD COLUMN weightUnit TEXT DEFAULT 'lb'`); } catch {}
     try { await this.db.run(`ALTER TABLE routine_exercises ADD COLUMN reserveReps INTEGER DEFAULT 0`); } catch {}
     try { await this.db.run(`ALTER TABLE routine_exercises ADD COLUMN notes TEXT DEFAULT ''`); } catch {}
     await this.db.execute(createRoutineDaysTable);
@@ -186,16 +186,16 @@ export class StorageService {
     if (!this.db) throw new Error('Database not initialized');
 
     const defaultExercises = [
-      { id: 'bench_press', name: 'Bench Press', muscleGroup: 'chest', equipment: 'barbell', description: 'Flat bench barbell press', defaultWeightUnit: 'lbs' },
-      { id: 'squat', name: 'Squat', muscleGroup: 'legs', equipment: 'barbell', description: 'Back squat', defaultWeightUnit: 'lbs' },
-      { id: 'deadlift', name: 'Deadlift', muscleGroup: 'back', equipment: 'barbell', description: 'Conventional deadlift', defaultWeightUnit: 'lbs' },
-      { id: 'overhead_press', name: 'Overhead Press', muscleGroup: 'shoulders', equipment: 'barbell', description: 'Standing overhead press', defaultWeightUnit: 'lbs' },
-      { id: 'pull_up', name: 'Pull Up', muscleGroup: 'back', equipment: 'bodyweight', description: 'Standard pull-up', defaultWeightUnit: 'lbs' },
-      { id: 'dumbbell_curl', name: 'Dumbbell Curl', muscleGroup: 'arms', equipment: 'dumbbell', description: 'Bicep curl with dumbbells', defaultWeightUnit: 'lbs' },
-      { id: 'tricep_dip', name: 'Tricep Dip', muscleGroup: 'arms', equipment: 'bodyweight', description: 'Parallel bar dips', defaultWeightUnit: 'lbs' },
-      { id: 'leg_press', name: 'Leg Press', muscleGroup: 'legs', equipment: 'machine', description: 'Machine leg press', defaultWeightUnit: 'lbs' },
-      { id: 'lat_pulldown', name: 'Lat Pulldown', muscleGroup: 'back', equipment: 'cable', description: 'Cable lat pulldown', defaultWeightUnit: 'lbs' },
-      { id: 'chest_fly', name: 'Chest Fly', muscleGroup: 'chest', equipment: 'dumbbell', description: 'Dumbbell chest fly', defaultWeightUnit: 'lbs' }
+      { id: 'bench_press', name: 'Bench Press', muscleGroup: 'chest', equipment: 'barbell', description: 'Flat bench barbell press', defaultWeightUnit: 'lb' },
+      { id: 'squat', name: 'Squat', muscleGroup: 'legs', equipment: 'barbell', description: 'Back squat', defaultWeightUnit: 'lb' },
+      { id: 'deadlift', name: 'Deadlift', muscleGroup: 'back', equipment: 'barbell', description: 'Conventional deadlift', defaultWeightUnit: 'lb' },
+      { id: 'overhead_press', name: 'Overhead Press', muscleGroup: 'shoulders', equipment: 'barbell', description: 'Standing overhead press', defaultWeightUnit: 'lb' },
+      { id: 'pull_up', name: 'Pull Up', muscleGroup: 'back', equipment: 'bodyweight', description: 'Standard pull-up', defaultWeightUnit: 'lb' },
+      { id: 'dumbbell_curl', name: 'Dumbbell Curl', muscleGroup: 'arms', equipment: 'dumbbell', description: 'Bicep curl with dumbbells', defaultWeightUnit: 'lb' },
+      { id: 'tricep_dip', name: 'Tricep Dip', muscleGroup: 'arms', equipment: 'bodyweight', description: 'Parallel bar dips', defaultWeightUnit: 'lb' },
+      { id: 'leg_press', name: 'Leg Press', muscleGroup: 'legs', equipment: 'machine', description: 'Machine leg press', defaultWeightUnit: 'lb' },
+      { id: 'lat_pulldown', name: 'Lat Pulldown', muscleGroup: 'back', equipment: 'cable', description: 'Cable lat pulldown', defaultWeightUnit: 'lb' },
+      { id: 'chest_fly', name: 'Chest Fly', muscleGroup: 'chest', equipment: 'dumbbell', description: 'Dumbbell chest fly', defaultWeightUnit: 'lb' }
     ];
 
     for (const exercise of defaultExercises) {
@@ -213,7 +213,7 @@ export class StorageService {
     if (!this.db) throw new Error('Database not initialized');
 
     const defaultPreferences = [
-      { key: 'weight_unit', value: 'lbs' },
+      { key: 'weight_unit', value: 'lb' },
       { key: 'theme', value: 'dark' },
       { key: 'date_format', value: 'MM/DD/YYYY' },
       { key: 'notifications_enabled', value: 'true' }
@@ -332,7 +332,7 @@ export class StorageService {
   async getUserPreferences(): Promise<UserPreferences> {
     // Always return fixed values - no settings needed
     return {
-      weightUnit: 'lbs',
+      weightUnit: 'lb',
       theme: 'dark',
       dateFormat: 'MM/DD/YYYY',
       notificationsEnabled: true
@@ -366,7 +366,7 @@ export class StorageService {
         equipment: 'barbell',
         description: 'Flat bench barbell press',
         isCustom: false,
-        defaultWeightUnit: 'lbs',
+        defaultWeightUnit: 'lb',
         createdAt: new Date(),
         updatedAt: new Date()
       },
@@ -377,7 +377,7 @@ export class StorageService {
         equipment: 'barbell',
         description: 'Back squat',
         isCustom: false,
-        defaultWeightUnit: 'lbs',
+        defaultWeightUnit: 'lb',
         createdAt: new Date(),
         updatedAt: new Date()
       },
@@ -388,7 +388,7 @@ export class StorageService {
         equipment: 'barbell',
         description: 'Conventional deadlift',
         isCustom: false,
-        defaultWeightUnit: 'lbs',
+        defaultWeightUnit: 'lb',
         createdAt: new Date(),
         updatedAt: new Date()
       },
@@ -399,7 +399,7 @@ export class StorageService {
         equipment: 'barbell',
         description: 'Standing overhead press',
         isCustom: false,
-        defaultWeightUnit: 'lbs',
+        defaultWeightUnit: 'lb',
         createdAt: new Date(),
         updatedAt: new Date()
       },
@@ -410,7 +410,7 @@ export class StorageService {
         equipment: 'bodyweight',
         description: 'Standard pull-up',
         isCustom: false,
-        defaultWeightUnit: 'lbs',
+        defaultWeightUnit: 'lb',
         createdAt: new Date(),
         updatedAt: new Date()
       }
@@ -426,9 +426,9 @@ export class StorageService {
         id: 'log_1',
         exerciseId: 'bench_press',
         sets: [
-          { reps: 10, weight: 135, weightUnit: 'lbs', isPersonalRecord: false },
-          { reps: 8, weight: 145, weightUnit: 'lbs', isPersonalRecord: false },
-          { reps: 6, weight: 155, weightUnit: 'lbs', isPersonalRecord: true }
+          { reps: 10, weight: 135, weightUnit: 'lb', isPersonalRecord: false },
+          { reps: 8, weight: 145, weightUnit: 'lb', isPersonalRecord: false },
+          { reps: 6, weight: 155, weightUnit: 'lb', isPersonalRecord: true }
         ],
         notes: 'Great session!',
         date: new Date(),
@@ -440,9 +440,9 @@ export class StorageService {
         id: 'log_2',
         exerciseId: 'squat',
         sets: [
-          { reps: 12, weight: 185, weightUnit: 'lbs', isPersonalRecord: false },
-          { reps: 10, weight: 205, weightUnit: 'lbs', isPersonalRecord: false },
-          { reps: 8, weight: 225, weightUnit: 'lbs', isPersonalRecord: false }
+          { reps: 12, weight: 185, weightUnit: 'lb', isPersonalRecord: false },
+          { reps: 10, weight: 205, weightUnit: 'lb', isPersonalRecord: false },
+          { reps: 8, weight: 225, weightUnit: 'lb', isPersonalRecord: false }
         ],
         notes: 'Feeling strong',
         date: new Date(),
@@ -458,7 +458,7 @@ export class StorageService {
    */
   private getMockUserPreferences(): UserPreferences {
     return {
-      weightUnit: 'lbs',
+      weightUnit: 'lb',
       theme: 'dark',
       dateFormat: 'MM/DD/YYYY',
       notificationsEnabled: true,
@@ -489,13 +489,13 @@ export class StorageService {
       // Store in Preferences for web environment
       const routines = await this.getRoutines();
       const existingIndex = routines.findIndex(r => r.id === routine.id);
-      
+
       if (existingIndex >= 0) {
         routines[existingIndex] = routine;
       } else {
         routines.push(routine);
       }
-      
+
       await Preferences.set({
         key: 'routines',
         value: JSON.stringify(routines)
@@ -565,7 +565,7 @@ export class StorageService {
         exercise.targetReps,
         exercise.order,
         (isNaN(Number(exercise.weight)) ? 0 : Number(exercise.weight)),
-        (exercise.weightUnit || 'lbs'),
+        (exercise.weightUnit || 'lb'),
         (isNaN(Number((exercise.reserveReps as number))) ? 0 : Number((exercise.reserveReps as number))),
         exercise.notes || ''
       ]);
@@ -609,7 +609,7 @@ export class StorageService {
         exerciseId: ex.exerciseId,
         exerciseName: ex.exerciseName,
         weight: typeof ex.weight === 'number' ? ex.weight : 0,
-        weightUnit: ex.weightUnit || ex.defaultWeightUnit || 'lbs',
+        weightUnit: ex.weightUnit || ex.defaultWeightUnit || 'lb',
         targetSets: ex.targetSets,
         targetReps: ex.targetReps,
         reserveReps: typeof ex.reserveReps === 'number' ? ex.reserveReps : 0,
@@ -693,7 +693,7 @@ export class StorageService {
     if (this.isWebEnvironment()) {
       const routines = await this.getRoutines();
       const filteredRoutines = routines.filter(r => r.id !== id);
-      
+
       await Preferences.set({
         key: 'routines',
         value: JSON.stringify(filteredRoutines)
@@ -727,5 +727,24 @@ export class StorageService {
 
   async clearTrainingState(): Promise<void> {
     await Preferences.remove({ key: 'training_state' });
+  }
+
+  async getOnboardingCompleted(): Promise<boolean> {
+    const res = await Preferences.get({ key: 'onboarding_completed' });
+    return res.value === 'true';
+  }
+
+  async setOnboardingCompleted(val: boolean): Promise<void> {
+    await Preferences.set({ key: 'onboarding_completed', value: val ? 'true' : 'false' });
+  }
+
+  async getLanguage(): Promise<'en' | 'es'> {
+    const res = await Preferences.get({ key: 'language' });
+    const v = (res.value || 'en');
+    return (v === 'es' ? 'es' : 'en');
+  }
+
+  async setLanguage(lang: 'en' | 'es'): Promise<void> {
+    await Preferences.set({ key: 'language', value: lang });
   }
 }

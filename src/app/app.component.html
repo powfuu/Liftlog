@@ -1,3 +1,12 @@
 <ion-app>
   <ion-router-outlet></ion-router-outlet>
+  <ion-modal
+    [isOpen]="showOnboarding"
+    cssClass="onboarding-fullscreen"
+    [backdropDismiss]="false"
+    (didDismiss)="onOnboardingDismiss($event)">
+    <ng-template>
+      <app-onboarding-modal></app-onboarding-modal>
+    </ng-template>
+  </ion-modal>
 </ion-app>

@@ -30,7 +30,7 @@ Chart.register(...registerables);
 })
 export class StatisticsPage implements OnInit, OnDestroy, AfterViewInit {
   private destroy$ = new Subject<void>();
-  private charts: { 
+  private charts: {
     progress: Chart | null;
     volume: Chart | null;
     frequency: Chart | null;
@@ -39,7 +39,7 @@ export class StatisticsPage implements OnInit, OnDestroy, AfterViewInit {
     volume: null,
     frequency: null
   };
-  
+
   exerciseLogs$: Observable<ExerciseLog[]>;
   selectedTimeRange = 'week';
   selectedExercise = 'all';
@@ -66,7 +66,7 @@ export class StatisticsPage implements OnInit, OnDestroy, AfterViewInit {
   ngOnDestroy() {
     this.destroy$.next();
     this.destroy$.complete();
-    
+
     // Destroy all charts
     Object.values(this.charts).forEach(chart => {
       if (chart && typeof chart.destroy === 'function') {
@@ -83,14 +83,14 @@ export class StatisticsPage implements OnInit, OnDestroy, AfterViewInit {
   private generateMockProgressData(): ProgressData {
     const dateRange = this.utilService.getDateRange(this.selectedTimeRange as any);
     const dataPoints = [];
-    
+
     // Generate data points for the time range
     const days = Math.ceil((dateRange.endDate.getTime() - dateRange.startDate.getTime()) / (1000 * 60 * 60 * 24));
-    
+
     for (let i = 0; i <= days; i++) {
       const date = new Date(dateRange.startDate);
       date.setDate(date.getDate() + i);
-      
+
       dataPoints.push({
         date,
         maxWeight: 100 + Math.random() * 50 + i * 2, // Progressive increase
@@ -106,7 +106,7 @@ export class StatisticsPage implements OnInit, OnDestroy, AfterViewInit {
       dataPoints,
       personalRecord: {
         weight: 180,
-        unit: 'lbs',
+        unit: 'lb',
         date: new Date(),
         exerciseName: 'Bench Press'
       },
@@ -133,7 +133,7 @@ export class StatisticsPage implements OnInit, OnDestroy, AfterViewInit {
     }
 
     const data = this.progressData?.dataPoints || [];
-    
+
     this.charts.progress = new Chart(ctx, {
       type: 'line',
       data: {
@@ -197,7 +197,7 @@ export class StatisticsPage implements OnInit, OnDestroy, AfterViewInit {
     }
 
     const data = this.progressData?.dataPoints || [];
-    
+
     this.charts.volume = new Chart(ctx, {
       type: 'bar',
       data: {
@@ -266,7 +266,7 @@ export class StatisticsPage implements OnInit, OnDestroy, AfterViewInit {
       { day: 'Sat', workouts: 4 },
       { day: 'Sun', workouts: 1 }
     ];
-    
+
     this.charts.frequency = new Chart(ctx, {
       type: 'doughnut',
       data: {

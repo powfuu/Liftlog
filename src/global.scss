@@ -136,20 +136,28 @@
   }
 }
 
+* {
+  outline: none;
+}
+
 /* Global Styles */
 body {
   --ion-font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 }
 
+.onboarding-fullscreen { z-index: 999999 !important; }
+.onboarding-fullscreen { --width: 100%; --height: 100%; --max-width: 100%; --max-height: 100%; --border-radius: 0; }
+.onboarding-fullscreen::part(content) { padding: 0; border-radius: 0; overflow: hidden; }
+
 :root {
   --ion-background-color: var(--liftlog-surface);
-  --fz-xs: 12px;
-  --fz-s: 14px;
-  --fz-m: 16px;
-  --fz-l: 18px;
-  --fz-xl: 20px;
-  --fz-2xl: 22px;
-  --fz-3xl: 24px;
+  --fz-xs: 11px;
+  --fz-s: 13px;
+  --fz-m: 15px;
+  --fz-l: 17px;
+  --fz-xl: 19px;
+  --fz-2xl: 21px;
+  --fz-3xl: 23px;
   --space-xs: 6px;
   --space-s: 10px;
   --space-m: 14px;
@@ -180,8 +188,21 @@ html, body, ion-content {
   -ms-overflow-style: none;
 }
 
+ion-content {
+  --padding-top: env(safe-area-inset-top);
+  --padding-bottom: env(safe-area-inset-bottom);
+  --padding-left: env(safe-area-inset-left);
+  --padding-right: env(safe-area-inset-right);
+}
 ion-content.bg-surface {
   --padding-top: env(safe-area-inset-top);
+}
+
+ion-modal::part(content) {
+  padding-top: env(safe-area-inset-top);
+  padding-bottom: env(safe-area-inset-bottom);
+  padding-left: env(safe-area-inset-left);
+  padding-right: env(safe-area-inset-right);
 }
 
 html::-webkit-scrollbar,

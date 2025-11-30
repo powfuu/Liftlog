@@ -20,7 +20,7 @@ const initialState: AppState = {
   routines: [],
   activeRoutine: null,
   userPreferences: {
-    weightUnit: 'lbs',
+    weightUnit: 'lb',
     theme: 'dark',
     dateFormat: 'MM/DD/YYYY',
     notificationsEnabled: true

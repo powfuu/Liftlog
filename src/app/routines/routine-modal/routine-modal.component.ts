@@ -4,7 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { IonIcon, ModalController } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
 import { DragDropModule, CdkDragDrop, moveItemInArray } from '@angular/cdk/drag-drop';
-import { add, remove, chevronDown, save, close, list, barbell, informationCircle, trash, swapVertical } from 'ionicons/icons';
+import { add, remove, chevronDown, chevronUp, save, close, list, barbell, informationCircle, trash, swapVertical } from 'ionicons/icons';
 import { Routine, RoutineExercise } from '../../models/routine.model';
 import { StorageService } from '../../services/storage.service';
 import { StoreService } from '../../services/store.service';
@@ -31,6 +31,7 @@ export class RoutineModalComponent implements OnInit, OnDestroy {
   animationState: 'entering' | 'entered' | 'exiting' = 'entering';
   hoverIndex: number | null = null;
   draggingId: string | null = null;
+  private focusedInputs = new Set<string>();
 
   constructor(
     private modalController: ModalController,
@@ -38,7 +39,7 @@ export class RoutineModalComponent implements OnInit, OnDestroy {
     private store: StoreService,
     private alerts: AlertService
   ) {
-    addIcons({ add, remove, chevronDown, save, close, list, barbell, informationCircle, trash, swapVertical });
+    addIcons({ add, remove, chevronDown, chevronUp, save, close, list, barbell, informationCircle, trash, swapVertical });
   }
 
   ngOnInit() {
@@ -76,6 +77,7 @@ export class RoutineModalComponent implements OnInit, OnDestroy {
   openAddForm() {
     const id = Date.now().toString(36) + Math.random().toString(36).slice(2);
     const order = this.exercises.length;
+    const hadExercises = this.exercises.length > 0;
     const ex: RoutineExercise = {
       exerciseId: id,
       exerciseName: '',
@@ -87,13 +89,16 @@ export class RoutineModalComponent implements OnInit, OnDestroy {
       notes: '',
       order
     };
+    (ex as any).sets = [];
     this.exercises.push(ex);
     this.expandedIds.add(id);
     this.activeTab = 'exercises';
-    setTimeout(() => {
-      const el = document.getElementById('exercise-' + id);
-      el?.scrollIntoView({ behavior: 'smooth', block: 'start', inline: 'nearest' });
-    }, 0);
+    if (hadExercises) {
+      setTimeout(() => {
+        const el = document.getElementById('exercise-' + id);
+        el?.scrollIntoView({ behavior: 'smooth', block: 'start', inline: 'nearest' });
+      }, 0);
+    }
   }
 
   removeExercise(i: number) {
@@ -118,6 +123,27 @@ export class RoutineModalComponent implements OnInit, OnDestroy {
   }
 
   trackByExerciseId(index: number, ex: RoutineExercise): string { return ex.exerciseId; }
+  trackBySetIndex(index: number, _s: any): number { return index; }
+
+  private key(ex: RoutineExercise, index: number, field: 'reps' | 'weight' | 'rir'): string {
+    return `${ex.exerciseId}:${index}:${field}`;
+  }
+  private isInputFocused(ex: RoutineExercise, index: number, field: 'reps' | 'weight' | 'rir'): boolean {
+    return this.focusedInputs.has(this.key(ex, index, field));
+  }
+  onInputFocus(ex: RoutineExercise, index: number, field: 'reps' | 'weight' | 'rir') {
+    this.focusedInputs.add(this.key(ex, index, field));
+  }
+  onInputBlur(ex: RoutineExercise, index: number, field: 'reps' | 'weight' | 'rir') {
+    this.focusedInputs.delete(this.key(ex, index, field));
+  }
+  getDisplayValue(ex: RoutineExercise, index: number, field: 'reps' | 'weight' | 'rir'): any {
+    const list = this.getSets(ex);
+    if (index < 0 || index >= list.length) return 0;
+    const v = (list[index] as any)[field];
+    if (this.isInputFocused(ex, index, field) && Number(v) === 0) return '';
+    return v;
+  }
 
   dropCdk(event: CdkDragDrop<RoutineExercise[]>) {
     const from = event.previousIndex;
@@ -174,10 +200,124 @@ export class RoutineModalComponent implements OnInit, OnDestroy {
     (ex as any)[field] = next;
   }
 
+  getSets(ex: RoutineExercise): Array<{ reps: number; weight: number; rir: number; unit?: 'kg' | 'lb' }> {
+    const arr = (ex as any).sets as Array<{ reps: number; weight: number; rir: number; unit?: 'kg' | 'lb' }>;
+    return Array.isArray(arr) ? arr : [];
+  }
+
+  addSet(ex: RoutineExercise) {
+    const list = this.getSets(ex);
+    const next = { reps: ex.targetReps || 10, weight: ex.weight || 0, rir: ex.reserveReps || 0, unit: ex.weightUnit || 'kg' } as any;
+    const cur = Array.isArray((ex as any).sets) ? (ex as any).sets : [];
+    (ex as any).sets = [...cur, next];
+    ex.targetSets = this.getSets(ex).length;
+  }
+
+  removeSet(ex: RoutineExercise, index: number) {
+    const list = this.getSets(ex);
+    if (index < 0 || index >= list.length) return;
+    const cur = [...list];
+    cur.splice(index, 1);
+    (ex as any).sets = cur;
+    ex.targetSets = this.getSets(ex).length;
+  }
+
+  updateSetValue(ex: RoutineExercise, index: number, field: 'reps' | 'weight' | 'rir', value: any) {
+    const list = this.getSets(ex);
+    if (index < 0 || index >= list.length) return;
+    let v = Number(value);
+    if (Number.isNaN(v)) v = 0;
+    if (field === 'reps') {
+      v = Math.max(0, Math.min(200, Math.round(v)));
+    } else if (field === 'weight') {
+      v = Math.max(0, Math.min(1000, Number(v.toFixed(2))));
+    } else if (field === 'rir') {
+      v = Math.max(0, Math.min(10, Math.round(v)));
+    }
+    const cur = [...list];
+    const item = { ...cur[index] };
+    (item as any)[field] = v;
+    cur[index] = item as any;
+    (ex as any).sets = cur;
+    ex.targetSets = this.getSets(ex).length;
+  }
+
+  setUnitForSet(ex: RoutineExercise, index: number, unit: 'kg' | 'lb') {
+    const list = this.getSets(ex);
+    if (index < 0 || index >= list.length) return;
+    const cur = [...list];
+    const item = { ...(cur[index] as any) };
+    const prev: 'kg' | 'lb' = (item.unit as any) || ex.weightUnit || 'kg';
+    if (prev === unit) return;
+    const factor = unit === 'lb' ? 2.20462 : 1 / 2.20462;
+    item.weight = Number((Number(item.weight || 0) * factor).toFixed(1));
+    item.unit = unit;
+    item.unitPulse = true;
+    cur[index] = item as any;
+    (ex as any).sets = cur;
+    this.closeUnitDropdown(ex, index);
+    setTimeout(() => {
+      const l = this.getSets(ex);
+      if (index < 0 || index >= l.length) return;
+      const c = [...l];
+      const it = { ...(c[index] as any) };
+      it.unitPulse = false;
+      c[index] = it;
+      (ex as any).sets = c;
+    }, 260);
+  }
+
+  isUnitDropdownOpen(ex: RoutineExercise, index: number): boolean {
+    const list = this.getSets(ex);
+    const item = list[index] as any;
+    return !!(item && item.unitOpen);
+  }
+
+  toggleUnitDropdown(ex: RoutineExercise, index: number) {
+    const list = this.getSets(ex);
+    if (index < 0 || index >= list.length) return;
+    const cur = [...list];
+    const item = { ...(cur[index] as any) };
+    item.unitOpen = !item.unitOpen;
+    cur[index] = item;
+    (ex as any).sets = cur;
+  }
+
+  closeUnitDropdown(ex: RoutineExercise, index: number) {
+    const list = this.getSets(ex);
+    if (index < 0 || index >= list.length) return;
+    const cur = [...list];
+    const item = { ...(cur[index] as any) };
+    item.unitOpen = false;
+    cur[index] = item;
+    (ex as any).sets = cur;
+  }
+
+  isUnitJustSelected(ex: RoutineExercise, index: number): boolean {
+    const list = this.getSets(ex);
+    const item = list[index] as any;
+    return !!(item && item.unitPulse);
+  }
+
+  setUnitForExercise(ex: RoutineExercise, unit: 'kg' | 'lb') {
+    const prev = ex.weightUnit || 'kg';
+    if (prev === unit) return;
+    const factor = unit === 'lb' ? 2.20462 : 1 / 2.20462;
+    const sets = this.getSets(ex).map(s => ({
+      ...s,
+      weight: Number((s.weight * factor).toFixed(1)),
+    }));
+    (ex as any).sets = sets;
+    ex.weight = Number(((ex.weight || 0) * factor).toFixed(1));
+    ex.weightUnit = unit;
+  }
+
   async saveRoutine() {
     const name = this.routineName?.trim();
     if (!name) { await this.alerts.error('Please set a routine name'); return; }
     if (this.selectedDays.length === 0) { await this.alerts.error('Please select at least one training day'); return; }
+    const invalidExercise = this.exercises.find(e => !(e.exerciseName || '').trim());
+    if (invalidExercise) { await this.alerts.error('Por favor asigna un nombre a todos los ejercicios'); return; }
 
     const now = new Date();
     const id = this.routine?.id || Date.now().toString(36) + Math.random().toString(36).slice(2);

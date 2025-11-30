@@ -15,7 +15,7 @@ export interface RoutineExercise {
   exerciseId: string;
   exerciseName: string;
   weight: number;
-  weightUnit: 'lbs' | 'kg';
+  weightUnit: 'lb' | 'kg';
   targetSets: number;
   targetReps: number;
   reserveReps?: number;
@@ -24,7 +24,7 @@ export interface RoutineExercise {
 }
 
 export interface UserPreferences {
-  weightUnit: 'lbs' | 'kg';
+  weightUnit: 'lb' | 'kg';
   theme: 'dark' | 'light';
   dateFormat: string;
   notificationsEnabled: boolean;
@@ -52,7 +52,7 @@ export interface ProgressPoint {
 
 export interface PersonalRecord {
   weight: number;
-  unit: 'lbs' | 'kg';
+  unit: 'lb' | 'kg';
   date: Date;
   exerciseName: string;
 }

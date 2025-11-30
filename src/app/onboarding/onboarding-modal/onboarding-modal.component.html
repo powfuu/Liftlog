@@ -1,0 +1,118 @@
+<div class="onboard-container" [class]="'animation-' + animationState">
+  <div class="bg-decor">
+    <div class="aurora a1"></div>
+    <div class="aurora a2"></div>
+    <div class="rays">
+      <span></span><span></span><span></span>
+    </div>
+  </div>
+  <div class="onboard-header">
+    <div class="notch">
+      <img src="assets/icon/favicon.png" alt="Liftlog" class="favicon" />
+    </div>
+  </div>
+
+  <div class="onboard-body">
+    <div class="slides-viewport" #viewport (scroll)="onScroll()">
+      <div class="slides-track">
+        <section class="slide" [class.active]="step===0">
+          <img class="bg-photo pos-center" [src]="imgLeft" alt="fitness" [attr.referrerpolicy]="'no-referrer'" [attr.crossorigin]="'anonymous'" />
+          <div class="tint-red"></div>
+          <div class="top-gradient"></div>
+          <div class="bottom-gradient"></div>
+          <div class="vignette"></div>
+          <div class="content">
+            <div class="brand-mark"><span class="lift">LIFT</span><span class="log">LOG</span></div>
+            <div class="subtitle">El tracker fitness definitivo</div>
+            <div class="preview-grid">
+              <div class="preview-card">
+                <div class="feature-icon"><ion-icon name="calendar"></ion-icon></div>
+                <div class="preview-label">Organiza</div>
+                <div class="card-content">Crea rutinas y gestiona ejercicios, objetivos y descansos.</div>
+              </div>
+              <div class="preview-card">
+                <div class="feature-icon"><ion-icon name="barbell"></ion-icon></div>
+                <div class="preview-label">Entrena</div>
+                <div class="card-content">Registra series, repeticiones y peso con precisión durante cada sesión.</div>
+              </div>
+              <div class="preview-card">
+                <div class="feature-icon"><ion-icon name="stats-chart"></ion-icon></div>
+                <div class="preview-label">Estadísticas</div>
+                <div class="card-content">Analiza volumen, PRs y tendencias para optimizar tus decisiones.</div>
+              </div>
+              <div class="preview-card">
+                <div class="feature-icon"><ion-icon name="flame"></ion-icon></div>
+                <div class="preview-label">Progreso</div>
+                <div class="card-content">Visualiza mejoras en el tiempo.</div>
+              </div>
+            </div>
+          </div>
+        </section>
+        <section class="slide" [class.active]="step===1">
+          <img class="bg-photo pos-center" [src]="imgCenter" alt="fitness" [attr.referrerpolicy]="'no-referrer'" [attr.crossorigin]="'anonymous'" />
+          <div class="tint-red"></div>
+          <div class="top-gradient"></div>
+          <div class="bottom-gradient"></div>
+          <div class="vignette"></div>
+          <div class="content">
+            <div class="title">Ajustes rápidos</div>
+            <div class="subtitle">Selecciona tu idioma preferido.</div>
+            <div class="overlay-card lang-card">
+              <div class="lang-header">
+                <ion-icon name="globe"></ion-icon>
+                <div class="lang-title">Idioma</div>
+                <div class="lang-sub">Elige cómo quieres ver la app</div>
+              </div>
+              <div class="lang-options" role="group" aria-label="Idioma">
+                <button type="button" class="lang-option" [class.selected]="language==='en'" (click)="setLanguage('en')" aria-pressed="{{language==='en'}}">
+                  <ion-icon name="globe"></ion-icon>
+                  <span>English</span>
+                  <span class="code">EN</span>
+                </button>
+                <button type="button" class="lang-option" [class.selected]="language==='es'" (click)="setLanguage('es')" aria-pressed="{{language==='es'}}">
+                  <ion-icon name="globe"></ion-icon>
+                  <span>Español</span>
+                  <span class="code">ES</span>
+                </button>
+              </div>
+              <div class="helper">Predeterminado: Inglés</div>
+            </div>
+          </div>
+        </section>
+        <section class="slide" [class.active]="step===2">
+          <img class="bg-photo pos-right" [src]="imgRight" alt="fitness" [attr.referrerpolicy]="'no-referrer'" [attr.crossorigin]="'anonymous'" />
+          <div class="tint-red"></div>
+          <div class="top-gradient"></div>
+          <div class="bottom-gradient"></div>
+          <div class="vignette"></div>
+          <div class="content">
+            <div class="title">¡Listo para entrenar!</div>
+            <div class="subtitle">Levanta, registra y mejora cada día.</div>
+            <button class="start-btn" *ngIf="step===2" (click)="complete()"><ion-icon name="checkmark"></ion-icon><span>Start now</span></button>
+          </div>
+        </section>
+      </div>
+    </div>
+
+
+
+    <div class="nav">
+      <div class="dots">
+        <span [class.active]="step===0" (click)="scrollToIndex(0)"></span>
+        <span [class.active]="step===1" (click)="scrollToIndex(1)"></span>
+        <span [class.active]="step===2" (click)="scrollToIndex(2)"></span>
+      </div>
+    </div>
+    <div class="bottom-cta">
+      <div class="cta-left">
+        <button class="nav-btn prev" *ngIf="step>0" (click)="prev()"><ion-icon name="chevron-back"></ion-icon></button>
+      </div>
+      <div class="cta-center"></div>
+      <div class="cta-right">
+        <button class="nav-btn next" *ngIf="step<2" (click)="next()"><ion-icon name="chevron-forward"></ion-icon></button>
+      </div>
+    </div>
+    <div class="home-indicator"></div>
+  </div>
+
+</div>

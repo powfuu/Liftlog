@@ -36,7 +36,7 @@
   </div>
 
   <!-- Content -->
-  <div class="modal-body modal-enter">
+  <div class="modal-body modal-enter" [class.info-padding]="activeTab === 'info'">
     <!-- Routine Info Section -->
     <div class="modal-card tab-enter tab-surface" *ngIf="activeTab === 'info'" [class.tab-slide-left]="tabTransition==='left'" [class.tab-slide-right]="tabTransition==='right'">
       <div class="modal-card-header">
@@ -132,7 +132,6 @@
               <div class="accordion-subtitle" aria-label="Exercise summary">
                 <span class="subtitle-label">Sets</span> <span class="subtitle-number">{{ exercise.targetSets }}</span>
                 • <span class="subtitle-label">Reps</span> <span class="subtitle-number">{{ exercise.targetReps }}</span>
-                • <span class="subtitle-label">Weight</span> <span class="subtitle-number">{{ exercise.weight }}</span> <span class="subtitle-number">{{ exercise.weightUnit }}</span>
               </div>
             </div>
             <div class="accordion-actions">
@@ -151,69 +150,70 @@
             class="accordion-details p-4 exercise-details"
             [class.expanded]="isExpanded(exercise)"
             [attr.id]="'exercise-details-' + exercise.exerciseId">
-            <div class="exercise-name-input-wrap">
-              <input
-                type="text"
-                [(ngModel)]="exercise.exerciseName"
-                placeholder="Exercise name"
-                class="exercise-name-input">
-            </div>
-            <!-- Creative number controls -->
-            <div class="section-spacing flex flex-col items-center gap-4 text-center">
-              <div class="number-control">
-                <div class="nc-label">Sets</div>
-                <div class="nc-box">
-                  <button class="nc-btn" (click)="adjustValue(exercise, 'targetSets', -1, 1, 10)"><ion-icon name="remove"></ion-icon></button>
-                  <div class="nc-value">{{exercise.targetSets}}</div>
-                  <button class="nc-btn" (click)="adjustValue(exercise, 'targetSets', 1, 1, 10)"><ion-icon name="add"></ion-icon></button>
+            <div class="section-spacing">
+              <div class="form-group" style="margin-bottom: 12px;">
+                <label>Exercise Name</label>
+                <input
+                  type="text"
+                  [(ngModel)]="exercise.exerciseName"
+                  placeholder="Enter exercise name"
+                  maxlength="50"
+                  aria-label="Exercise name">
+              </div>
+              <div class="modal-card-header" style="justify-content: space-between; align-items: center;">
+                <div class="modal-card-title">
+                  <ion-icon name="swap-vertical"></ion-icon>
+                  <span class="sets-label">Sets</span>
                 </div>
+                <button class="modal-add-set-btn" (click)="addSet(exercise)" aria-label="Add Set">
+                  <ion-icon name="add"></ion-icon>
+                  <span>Add Set</span>
+                </button>
               </div>
-              <div class="number-control">
-                <div class="nc-label">Reps</div>
-                <div class="nc-box">
-                  <button class="nc-btn" (click)="adjustValue(exercise, 'targetReps', -1, 1, 50)"><ion-icon name="remove"></ion-icon></button>
-                  <div class="nc-value">{{exercise.targetReps}}</div>
-                  <button class="nc-btn" (click)="adjustValue(exercise, 'targetReps', 1, 1, 50)"><ion-icon name="add"></ion-icon></button>
-                </div>
+              <div class="sets-table" *ngIf="getSets(exercise).length > 0">
+                <table class="glass-table" aria-label="Sets table">
+                  <thead>
+                    <tr>
+                      <th>Reps</th>
+                      <th>Weight</th>
+                      <th>RIR</th>
+                      <th></th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr *ngFor="let s of getSets(exercise); let si = index; trackBy: trackBySetIndex">
+                      <td>
+                        <input type="number" inputmode="numeric" pattern="[0-9]*" [ngModel]="getDisplayValue(exercise, si, 'reps')" (ngModelChange)="updateSetValue(exercise, si, 'reps', $event)" (focus)="onInputFocus(exercise, si, 'reps')" (blur)="onInputBlur(exercise, si, 'reps')" min="0" max="200" step="1" class="sf-input" aria-label="Reps" />
+                      </td>
+                      <td>
+                        <div class="sf-combo">
+                          <input type="number" inputmode="decimal" [ngModel]="getDisplayValue(exercise, si, 'weight')" (ngModelChange)="updateSetValue(exercise, si, 'weight', $event)" (focus)="onInputFocus(exercise, si, 'weight')" (blur)="onInputBlur(exercise, si, 'weight')" min="0" max="1000" step="0.1" class="sf-input" aria-label="Weight" />
+                          <div class="unit-dd">
+                            <button class="unit-dd-btn" (click)="toggleUnitDropdown(exercise, si)" [attr.aria-expanded]="isUnitDropdownOpen(exercise, si)">
+                              <span class="label">{{ (s.unit || exercise.weightUnit)?.toUpperCase() }}</span>
+                              <ion-icon [name]="isUnitDropdownOpen(exercise, si) ? 'chevron-up' : 'chevron-down'"></ion-icon>
+                            </button>
+                            <div class="unit-dd-menu" [class.open]="isUnitDropdownOpen(exercise, si)" [attr.aria-hidden]="!isUnitDropdownOpen(exercise, si)">
+                              <button class="unit-dd-item" [class.selected]="(s.unit || exercise.weightUnit)==='kg'" [class.just-selected]="isUnitJustSelected(exercise, si)" (click)="setUnitForSet(exercise, si, 'kg')">KG</button>
+                              <button class="unit-dd-item" [class.selected]="(s.unit || exercise.weightUnit)==='lb'" [class.just-selected]="isUnitJustSelected(exercise, si)" (click)="setUnitForSet(exercise, si, 'lb')">LB</button>
+                            </div>
+                          </div>
+                        </div>
+                      </td>
+                      <td>
+                        <input type="number" inputmode="numeric" pattern="[0-9]*" [ngModel]="getDisplayValue(exercise, si, 'rir')" (ngModelChange)="updateSetValue(exercise, si, 'rir', $event)" (focus)="onInputFocus(exercise, si, 'rir')" (blur)="onInputBlur(exercise, si, 'rir')" min="0" max="10" step="1" class="sf-input" aria-label="RIR" />
+                      </td>
+                      <td>
+                        <button class="exercise-trash-btn" (click)="removeSet(exercise, si)" aria-label="Eliminar set"><ion-icon name="trash"></ion-icon></button>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
               </div>
-              <div style="margin-bottom: -14px;" class="number-control">
-                <div class="nc-label">Reps in Reserve (RIR)</div>
-                <div class="nc-box">
-                  <button class="nc-btn" (click)="adjustValue(exercise, 'reserveReps', -1, 0, 10)"><ion-icon name="remove"></ion-icon></button>
-                  <div class="nc-value">{{exercise.reserveReps}}</div>
-                  <button class="nc-btn" (click)="adjustValue(exercise, 'reserveReps', 1, 0, 10)"><ion-icon name="add"></ion-icon></button>
-                </div>
-              </div>
-            </div>
-
-            <!-- Weight and Unit with chips -->
-            <div class="section-spacing flex flex-col items-center gap-4 text-center">
-              <div class="number-control wide">
-                <div class="nc-label">Weight</div>
-                <div class="nc-box">
-                  <button class="nc-btn" (click)="adjustValue(exercise, 'weight', exercise.weightUnit==='kg' ? -1 : -2, 0, 1000)"><ion-icon name="remove"></ion-icon></button>
-                  <div class="nc-value nc-value-combo">
-                    <input type="number" [(ngModel)]="exercise.weight" min="0" step="0.1" class="nc-input"/>
-                    <span class="nc-unit">{{exercise.weightUnit}}</span>
-                  </div>
-                  <button class="nc-btn" (click)="adjustValue(exercise, 'weight', exercise.weightUnit==='kg' ? 1 : 2, 0, 1000)"><ion-icon name="add"></ion-icon></button>
-                </div>
-              </div>
-              <div class="unit-chips flex flex-col items-center gap-2">
-                <button class="unit-chip" [class.selected]="exercise.weightUnit==='kg'" (click)="exercise.weightUnit='kg'">kg</button>
-                <button class="unit-chip" [class.selected]="exercise.weightUnit==='lbs'" (click)="exercise.weightUnit='lbs'">lbs</button>
-              </div>
-            </div>
-
-            <!-- Notes (Optional) -->
-            <div class="notes-section section-spacing">
-              <label class="text-gray-400 text-xs">Notes (Optional)</label>
-              <div class="notes-box">
-                <textarea
-                  [(ngModel)]="exercise.notes"
-                  placeholder="How did it feel? Any cues or adjustments?"
-                  rows="3"
-                  class="notes-textarea"></textarea>
+              <div class="sets-empty" *ngIf="getSets(exercise).length === 0">
+                <div class="sets-empty-icon"><ion-icon name="swap-vertical"></ion-icon></div>
+                <h4>No sets added</h4>
+                <p class="sets-empty-sub">Add your first set to start configuring this exercise.</p>
               </div>
             </div>
             <div class="drag-preview" *cdkDragPreview>

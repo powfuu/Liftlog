@@ -12,6 +12,7 @@ import { addIcons } from 'ionicons';
 import { list, add, chevronForward, trash, close, save, albums, calendar } from 'ionicons/icons';
 import { barbell } from 'ionicons/icons';
 import { AlertService } from '../services/alert.service';
+import { StoreService } from '../services/store.service';
 
 @Component({
   selector: 'app-programs',
@@ -32,7 +33,7 @@ export class ProgramsPage implements OnInit {
   hoverIndex: number | null = null;
   draggingId: string | null = null;
 
-  constructor(private storage: StorageService, public router: Router, private route: ActivatedRoute, private alerts: AlertService, private modalController: ModalController) {
+  constructor(private storage: StorageService, public router: Router, private route: ActivatedRoute, private alerts: AlertService, private modalController: ModalController, private store: StoreService) {
     addIcons({ list, add, chevronForward, trash, close, save, albums, barbell, calendar });
   }
 
@@ -108,6 +109,8 @@ export class ProgramsPage implements OnInit {
           await this.alerts.success('Program has been saved');
           this.lastAddedProgram = result.data.name;
           await this.loadPrograms();
+          const latestRoutines = await this.storage.getRoutines();
+          this.store.setRoutines(latestRoutines);
           setTimeout(() => { this.lastAddedProgram = null; }, 1000);
         }
       });
@@ -123,6 +126,8 @@ export class ProgramsPage implements OnInit {
     if (!confirmed) return;
     await this.storage.deleteProgram(name);
     await this.alerts.success(`${name} has been deleted`);
+    const latestRoutinesAfterDelete = await this.storage.getRoutines();
+    this.store.setRoutines(latestRoutinesAfterDelete);
     this.deletingPrograms.add(name);
     if (this.view === 'routines' && this.selectedProgram === name) {
       this.selectedProgram = null;
@@ -181,6 +186,7 @@ export class ProgramsPage implements OnInit {
     this.hoverIndex = null;
     // Persist routines order
     this.storage.saveRoutinesOrder(this.routines).catch(() => {});
+    this.store.setRoutines(this.routines);
   }
 
   onProgDragEntered(index: number) { if (this.hoverIndex !== index) this.hoverIndex = index; }

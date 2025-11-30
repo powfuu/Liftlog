@@ -1,17 +1,19 @@
 import { Component, OnInit } from '@angular/core';
-import { IonApp, IonRouterOutlet } from '@ionic/angular/standalone';
+import { IonApp, IonRouterOutlet, IonModal } from '@ionic/angular/standalone';
 import { StorageService } from './services/storage.service';
 import { StoreService } from './services/store.service';
 import { KeyboardService } from './services/keyboard.service';
 import { StatusBar, Style } from '@capacitor/status-bar';
 import { Capacitor } from '@capacitor/core';
+import { OnboardingModalComponent } from './onboarding/onboarding-modal/onboarding-modal.component';
 
 @Component({
   selector: 'app-root',
   templateUrl: 'app.component.html',
-  imports: [IonApp, IonRouterOutlet],
+  imports: [IonApp, IonRouterOutlet, IonModal, OnboardingModalComponent],
 })
 export class AppComponent implements OnInit {
+  showOnboarding = false;
   constructor(
     private storageService: StorageService,
     private store: StoreService,
@@ -28,12 +30,21 @@ export class AppComponent implements OnInit {
         await StatusBar.setStyle({ style: Style.Dark });
         await StatusBar.setBackgroundColor({ color: '#000000' });
       }
-      
-      console.log('Liftlog app initialized successfully!');
+
+      const done = await this.storageService.getOnboardingCompleted();
+      if (!done) { document.body.classList.add('modal-open'); this.showOnboarding = true; }
     } catch (error) {
       console.error('Error initializing app:', error);
     }
   }
 
   private async loadInitialData() {}
+
+  async onOnboardingDismiss(ev: any) {
+    document.body.classList.remove('modal-open');
+    this.showOnboarding = false;
+    if (ev?.detail?.data) {
+      await this.storageService.setOnboardingCompleted(true);
+    }
+  }
 }

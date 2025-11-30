@@ -18,19 +18,19 @@ export class UtilService {
   /**
    * Convert weight between lbs and kg
    */
-  convertWeight(weight: number, fromUnit: 'lbs' | 'kg', toUnit: 'lbs' | 'kg'): number {
+  convertWeight(weight: number, fromUnit: 'lb' | 'kg', toUnit: 'lb' | 'kg'): number {
     if (fromUnit === toUnit) {
       return weight;
     }
-    
-    if (fromUnit === 'lbs' && toUnit === 'kg') {
+
+    if (fromUnit === 'lb' && toUnit === 'kg') {
       return Math.round(weight * 0.453592 * 100) / 100; // Convert to kg, round to 2 decimals
     }
-    
-    if (fromUnit === 'kg' && toUnit === 'lbs') {
+
+    if (fromUnit === 'kg' && toUnit === 'lb') {
       return Math.round(weight * 2.20462 * 100) / 100; // Convert to lbs, round to 2 decimals
     }
-    
+
     return weight;
   }
 
@@ -55,7 +55,7 @@ export class UtilService {
     const day = date.getDate().toString().padStart(2, '0');
     const month = (date.getMonth() + 1).toString().padStart(2, '0');
     const year = date.getFullYear();
-    
+
     switch (format) {
       case 'MM/DD/YYYY':
         return `${month}/${day}/${year}`;
@@ -74,7 +74,7 @@ export class UtilService {
   getDateRange(range: 'week' | 'month' | '3months' | 'year' | 'all'): {startDate: Date, endDate: Date, label: string} {
     const endDate = new Date();
     const startDate = new Date();
-    
+
     switch (range) {
       case 'week':
         startDate.setDate(endDate.getDate() - 7);

@@ -20,10 +20,15 @@
     </div>
 
     <div *ngIf="!isLoading && view==='programs' && programs.length > 0" class="routines-list" cdkDropList [cdkDropListData]="programs" [cdkDropListOrientation]="'vertical'" (cdkDropListDropped)="dropPrograms($event)">
-      <div *ngFor="let p of programs; let i = index" class="glass-card program-card" cdkDrag cdkDragLockAxis="y" [class.dragging]="draggingId===p.name" (cdkDragStarted)="onProgDragStarted(p.name)" (cdkDragEnded)="onProgDragEnded()" (cdkDragEntered)="onProgDragEntered(i)" (cdkDragExited)="onProgDragExited(i)" [class.drop-target]="hoverIndex===i" [class.card-initial]="initialAnimation" [class.card-enter]="p.name === lastAddedProgram" [class.card-exit]="deletingPrograms.has(p.name)" [style.animationDelay]="(i * 120) + 'ms'">
+      <div *ngFor="let p of programs; let i = index" class="glass-card program-card" cdkDrag cdkDragLockAxis="y" [class.dragging]="draggingId===p.name" (cdkDragStarted)="onProgDragStarted(p.name)" (cdkDragEnded)="onProgDragEnded()" (cdkDragEntered)="onProgDragEntered(i)" (cdkDragExited)="onProgDragExited(i)" [class.drop-target]="hoverIndex===i" [class.card-initial]="initialAnimation" [class.card-enter]="p.name === lastAddedProgram" [class.card-exit]="deletingPrograms.has(p.name)" [style.animationDelay]="(i * 120) + 'ms'" [attr.id]="'program-' + p.name">
         <div class="program-row">
           <div class="program-body" (click)="openProgram(p.name)">
             <div class="program-header">
+              <button class="drag-handle" aria-label="Drag to reorder" (click)="$event.stopPropagation()">
+                <span class="dot"></span><span class="dot"></span>
+                <span class="dot"></span><span class="dot"></span>
+                <span class="dot"></span><span class="dot"></span>
+              </button>
               <div class="program-title">{{ p.name }}</div>
               <div class="days-badge"><ion-icon name="calendar"></ion-icon><span>{{ p.daysPerWeek }} days/week</span></div>
             </div>
