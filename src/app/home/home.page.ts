@@ -847,8 +847,8 @@ export class HomePage implements OnInit {
   private prepareCalendar(base: Date) {
     this.calendarYear = base.getFullYear();
     this.calendarMonth = base.getMonth();
-    const start = startOfWeek(startOfMonth(base), { weekStartsOn: 0 });
-    const end = endOfWeek(endOfMonth(base), { weekStartsOn: 0 });
+    const start = startOfMonth(base);
+    const end = endOfMonth(base);
     const days: Date[] = [];
     let cur = start;
     while (cur <= end) { days.push(cur); cur = addDays(cur, 1); }

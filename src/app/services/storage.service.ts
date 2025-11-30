@@ -653,6 +653,12 @@ export class StorageService {
     await Preferences.set({ key: 'programs', value: JSON.stringify(list) });
   }
 
+  async saveProgramsList(programs: { name: string; description?: string }[]): Promise<void> {
+    try {
+      await Preferences.set({ key: 'programs', value: JSON.stringify(programs) });
+    } catch {}
+  }
+
   async deleteProgram(name: string): Promise<void> {
     const list = await this.getPrograms();
     const filtered = list.filter(p => p.name !== name);
@@ -669,6 +675,14 @@ export class StorageService {
     if (!this.db) return;
     try {
       await this.db.run('UPDATE routines SET programName = NULL WHERE programName = ?', [name]);
+    } catch {}
+  }
+
+  async saveRoutinesOrder(routines: Routine[]): Promise<void> {
+    // Persist order only in web environment (Preferences-backed)
+    try {
+      const data = routines.map(r => ({ ...r }));
+      await Preferences.set({ key: 'routines', value: JSON.stringify(data) });
     } catch {}
   }
 

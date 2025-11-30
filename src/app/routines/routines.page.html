@@ -38,20 +38,34 @@
       <div class="empty-action" (click)="createRoutine()">Create it now!</div>
     </div>
 
-    <div *ngIf="!isLoading && filteredRoutines.length > 0" class="routines-list">
+    <div *ngIf="!isLoading && filteredRoutines.length > 0" class="routines-list" cdkDropList [cdkDropListData]="filteredRoutines" [cdkDropListOrientation]="'vertical'" (cdkDropListDropped)="dropRoutines($event)">
       <div
-        *ngFor="let routine of filteredRoutines; let i = index"
+        *ngFor="let routine of filteredRoutines; let i = index; trackBy: trackByRoutineId"
         (click)="editRoutine(routine)"
         class="glass-card routine-card"
+        cdkDrag
+        cdkDragLockAxis="y"
+        [class.dragging]="draggingId===routine.id"
+        (cdkDragStarted)="onRutDragStarted(routine.id)"
+        (cdkDragEnded)="onRutDragEnded()"
+        (cdkDragEntered)="onRutDragEntered(i)"
+        (cdkDragExited)="onRutDragExited(i)"
+        [class.drop-target]="hoverIndex===i"
         [class.card-initial]="initialAnimation"
         [class.card-enter]="enteringId === routine.id"
         [class.card-exit]="removingId === routine.id"
         [style.animationDelay]="(i * 160) + 'ms'"
         (animationend)="onCardAnimationEnd(routine)"
+        [attr.id]="'routine-' + routine.id"
         >
 
         <!-- Routine Header -->
         <div class="card-header">
+          <button class="drag-handle" aria-label="Drag to reorder" (click)="$event.stopPropagation()">
+            <span class="dot"></span><span class="dot"></span>
+            <span class="dot"></span><span class="dot"></span>
+            <span class="dot"></span><span class="dot"></span>
+          </button>
           <div class="header-text">
             <div class="card-title">{{ routine.name }}</div>
           </div>
@@ -92,6 +106,20 @@
             <span class="stat-text">{{ getScheduleLabel(routine) }}</span>
           </div>
         </div>
+        <div class="drag-preview" *cdkDragPreview>
+          <div class="card-header">
+            <button class="drag-handle" aria-label="Drag handle">
+              <span class="dot"></span><span class="dot"></span>
+              <span class="dot"></span><span class="dot"></span>
+              <span class="dot"></span><span class="dot"></span>
+            </button>
+            <div class="header-text">
+              <div class="card-title">{{ routine.name }}</div>
+            </div>
+            <div class="header-actions"></div>
+          </div>
+        </div>
+        <div class="drag-placeholder" *cdkDragPlaceholder></div>
       </div>
     </div>
 

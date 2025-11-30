@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { IonHeader, IonToolbar, IonTitle, IonContent, IonBackButton, IonButtons, IonButton, IonIcon, IonCard, IonCardContent, IonCardHeader, IonLabel, IonChip, ModalController } from '@ionic/angular/standalone';
 import { NotchHeaderComponent } from '../shared/notch-header/notch-header.component';
+import { DragDropModule, CdkDragDrop, moveItemInArray } from '@angular/cdk/drag-drop';
 import { add, barbell, list, trash, create, chevronForward, refresh, calendar } from 'ionicons/icons';
 import { addIcons } from 'ionicons';
 import { Router } from '@angular/router';
@@ -18,7 +19,7 @@ import { AlertService } from '../services/alert.service';
   styleUrls: ['./routines.page.scss'],
   imports: [
     CommonModule,
-    IonContent, IonIcon, IonButton, NotchHeaderComponent
+    IonContent, IonIcon, IonButton, NotchHeaderComponent, DragDropModule
   ],
 })
 export class RoutinesPage implements OnInit {
@@ -30,6 +31,8 @@ export class RoutinesPage implements OnInit {
   initialAnimation = false;
   todayDateShort = '';
   currentProgram: string | null = null;
+  hoverIndex: number | null = null;
+  draggingId: string | null = null;
 
   constructor(
     private modalController: ModalController,
@@ -251,5 +254,70 @@ export class RoutinesPage implements OnInit {
       default:
         return 'Custom';
     }
+  }
+
+  trackByRoutineId(index: number, r: Routine): string { return r.id; }
+
+  dropRoutines(event: CdkDragDrop<Routine[]>) {
+    const from = event.previousIndex;
+    const to = (this.hoverIndex ?? event.currentIndex);
+    if (from === to) { this.hoverIndex = null; return; }
+    const list = this.currentProgram ? this.filteredRoutines : this.routines;
+    const before = this.captureRects('routine-');
+    moveItemInArray(list, from, to);
+    if (this.currentProgram) {
+      const norm = (this.currentProgram || '').trim().toLowerCase();
+      const positions: number[] = [];
+      for (let i = 0; i < this.routines.length; i++) {
+        const pm = (this.routines[i].programName || 'General').trim().toLowerCase();
+        if (pm === norm) positions.push(i);
+      }
+      for (let idx = 0; idx < positions.length; idx++) {
+        this.routines[positions[idx]] = this.filteredRoutines[idx];
+      }
+    }
+    this.store.setRoutines(this.routines);
+    this.storageService.saveRoutinesOrder(this.routines).catch(() => {});
+    this.hoverIndex = null;
+    this.runFlip('routine-', before);
+  }
+
+  onRutDragEntered(index: number) { if (this.hoverIndex !== index) this.hoverIndex = index; }
+  onRutDragExited(index: number) { if (this.hoverIndex === index) this.hoverIndex = null; }
+  onRutDragStarted(id: string) { this.draggingId = id; }
+  onRutDragEnded() { this.draggingId = null; this.hoverIndex = null; }
+
+  private captureRects(prefix: string): Map<string, DOMRect> {
+    const map = new Map<string, DOMRect>();
+    const nodes = Array.from(document.querySelectorAll(`[id^="${prefix}"]`));
+    for (const n of nodes) {
+      const el = n as HTMLElement;
+      map.set(el.id, el.getBoundingClientRect());
+    }
+    return map;
+  }
+
+  private async runFlip(prefix: string, before: Map<string, DOMRect>) {
+    await this.nextFrame();
+    const after = this.captureRects(prefix);
+    after.forEach((rect, id) => {
+      const prev = before.get(id);
+      if (!prev) return;
+      const dx = prev.left - rect.left;
+      const dy = prev.top - rect.top;
+      if (dx === 0 && dy === 0) return;
+      const el = document.getElementById(id) as HTMLElement | null;
+      if (!el) return;
+      el.style.transform = `translate(${dx}px, ${dy}px)`;
+      el.style.willChange = 'transform';
+      el.style.transition = 'transform 420ms cubic-bezier(0.16, 1, 0.3, 1)';
+      requestAnimationFrame(() => {
+        el.style.transform = '';
+      });
+      setTimeout(() => {
+        el.style.willChange = '';
+        el.style.transition = '';
+      }, 480);
+    });
   }
 }

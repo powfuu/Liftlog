@@ -19,8 +19,8 @@
       </div>
     </div>
 
-    <div *ngIf="!isLoading && view==='programs' && programs.length > 0" class="routines-list">
-      <div *ngFor="let p of programs; let i = index" class="glass-card program-card" [class.card-initial]="initialAnimation" [class.card-enter]="p.name === lastAddedProgram" [class.card-exit]="deletingPrograms.has(p.name)" [style.animationDelay]="(i * 120) + 'ms'">
+    <div *ngIf="!isLoading && view==='programs' && programs.length > 0" class="routines-list" cdkDropList [cdkDropListData]="programs" [cdkDropListOrientation]="'vertical'" (cdkDropListDropped)="dropPrograms($event)">
+      <div *ngFor="let p of programs; let i = index" class="glass-card program-card" cdkDrag cdkDragLockAxis="y" [class.dragging]="draggingId===p.name" (cdkDragStarted)="onProgDragStarted(p.name)" (cdkDragEnded)="onProgDragEnded()" (cdkDragEntered)="onProgDragEntered(i)" (cdkDragExited)="onProgDragExited(i)" [class.drop-target]="hoverIndex===i" [class.card-initial]="initialAnimation" [class.card-enter]="p.name === lastAddedProgram" [class.card-exit]="deletingPrograms.has(p.name)" [style.animationDelay]="(i * 120) + 'ms'">
         <div class="program-row">
           <div class="program-body" (click)="openProgram(p.name)">
             <div class="program-header">
@@ -37,13 +37,20 @@
               <button class="action-button" (click)="$event.stopPropagation(); openProgram(p.name)"><ion-icon name="chevron-forward"></ion-icon></button>
             </div>
           </div>
+          <div class="drag-preview" *cdkDragPreview>
+            <div class="program-header">
+              <div class="program-title">{{ p.name }}</div>
+              <div class="days-badge"><ion-icon name="calendar"></ion-icon><span>{{ p.daysPerWeek }} days/week</span></div>
+            </div>
+          </div>
+          <div class="drag-placeholder" *cdkDragPlaceholder></div>
         </div>
       </div>
     </div>
 
     <!-- Routines within selected Program -->
-    <div *ngIf="!isLoading && view==='routines'" class="routines-list">
-      <div *ngFor="let routine of filteredRoutines; let i = index" class="glass-card routine-card" [class.card-initial]="initialAnimation" [style.animationDelay]="(i * 120) + 'ms'" (click)="goToRoutinesView()">
+    <div *ngIf="!isLoading && view==='routines'" class="routines-list" cdkDropList [cdkDropListData]="filteredRoutines" [cdkDropListOrientation]="'vertical'" (cdkDropListDropped)="dropProgramRoutines($event)">
+      <div *ngFor="let routine of filteredRoutines; let i = index; trackBy: trackByRoutineId" class="glass-card routine-card" cdkDrag cdkDragLockAxis="y" [class.dragging]="draggingId===routine.id" (cdkDragStarted)="onRutDragStarted(routine.id)" (cdkDragEnded)="onRutDragEnded()" (cdkDragEntered)="onRutDragEntered(i)" (cdkDragExited)="onRutDragExited(i)" [class.drop-target]="hoverIndex===i" [class.card-initial]="initialAnimation" [style.animationDelay]="(i * 120) + 'ms'" (click)="goToRoutinesView()">
         <div class="card-header">
           <div class="header-text">
             <div class="card-title">{{ routine.name }}</div>
@@ -53,6 +60,15 @@
             <button class="action-button" (click)="$event.stopPropagation(); goToRoutinesView()"><ion-icon name="chevron-forward"></ion-icon></button>
           </div>
         </div>
+        <div class="drag-preview" *cdkDragPreview>
+          <div class="card-header">
+            <div class="header-text">
+              <div class="card-title">{{ routine.name }}</div>
+            </div>
+            <div class="header-actions"></div>
+          </div>
+        </div>
+        <div class="drag-placeholder" *cdkDragPlaceholder></div>
       </div>
     </div>
 

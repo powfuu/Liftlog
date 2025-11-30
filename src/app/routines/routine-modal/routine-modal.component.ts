@@ -123,19 +123,51 @@ export class RoutineModalComponent implements OnInit, OnDestroy {
     const from = event.previousIndex;
     const to = this.hoverIndex ?? event.currentIndex;
     if (from === to) { this.hoverIndex = null; return; }
-    const tmp = this.exercises[to];
-    this.exercises[to] = this.exercises[from];
-    this.exercises[from] = tmp;
-    for (let i = 0; i < this.exercises.length; i++) {
-      this.exercises[i].order = i;
-    }
+    const before = this.captureRects('exercise-');
+    moveItemInArray(this.exercises, from, to);
+    for (let i = 0; i < this.exercises.length; i++) { this.exercises[i].order = i; }
     this.hoverIndex = null;
+    this.runFlip('exercise-', before);
   }
 
   onDragEntered(index: number) { if (this.hoverIndex !== index) this.hoverIndex = index; }
   onDragExited(index: number) { if (this.hoverIndex === index) this.hoverIndex = null; }
   onDragStarted(id: string) { this.draggingId = id; }
   onDragEnded() { this.draggingId = null; this.hoverIndex = null; }
+
+  private nextFrame(): Promise<void> { return new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(() => resolve()))); }
+  private captureRects(prefix: string): Map<string, DOMRect> {
+    const map = new Map<string, DOMRect>();
+    const nodes = Array.from(document.querySelectorAll(`[id^="${prefix}"]`));
+    for (const n of nodes) {
+      const el = n as HTMLElement;
+      map.set(el.id, el.getBoundingClientRect());
+    }
+    return map;
+  }
+  private async runFlip(prefix: string, before: Map<string, DOMRect>) {
+    await this.nextFrame();
+    const after = this.captureRects(prefix);
+    after.forEach((rect, id) => {
+      const prev = before.get(id);
+      if (!prev) return;
+      const dx = prev.left - rect.left;
+      const dy = prev.top - rect.top;
+      if (dx === 0 && dy === 0) return;
+      const el = document.getElementById(id) as HTMLElement | null;
+      if (!el) return;
+      el.style.transform = `translate(${dx}px, ${dy}px)`;
+      el.style.willChange = 'transform';
+      el.style.transition = 'transform 420ms cubic-bezier(0.16, 1, 0.3, 1)';
+      requestAnimationFrame(() => {
+        el.style.transform = '';
+      });
+      setTimeout(() => {
+        el.style.willChange = '';
+        el.style.transition = '';
+      }, 480);
+    });
+  }
 
   adjustValue(ex: RoutineExercise, field: keyof RoutineExercise, delta: number, min: number, max: number) {
     const next = Math.max(min, Math.min(max, Number((ex as any)[field]) + delta));

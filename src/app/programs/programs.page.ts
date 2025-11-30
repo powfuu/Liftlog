@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { IonContent, IonIcon, IonButton, IonModal, ModalController } from '@ionic/angular/standalone';
+import { DragDropModule, CdkDragDrop } from '@angular/cdk/drag-drop';
 import { ProgramModalComponent } from './program-modal/program-modal.component';
 import { NotchHeaderComponent } from '../shared/notch-header/notch-header.component';
 import { Router, ActivatedRoute } from '@angular/router';
@@ -16,7 +17,7 @@ import { AlertService } from '../services/alert.service';
   selector: 'app-programs',
   templateUrl: './programs.page.html',
   styleUrls: ['./programs.page.scss'],
-  imports: [CommonModule, FormsModule, IonContent, IonIcon, IonButton, IonModal, NotchHeaderComponent],
+  imports: [CommonModule, FormsModule, IonContent, IonIcon, IonButton, IonModal, NotchHeaderComponent, DragDropModule],
 })
 export class ProgramsPage implements OnInit {
   isLoading = true;
@@ -28,6 +29,8 @@ export class ProgramsPage implements OnInit {
   initialAnimation = false;
   lastAddedProgram: string | null = null;
   deletingPrograms = new Set<string>();
+  hoverIndex: number | null = null;
+  draggingId: string | null = null;
 
   constructor(private storage: StorageService, public router: Router, private route: ActivatedRoute, private alerts: AlertService, private modalController: ModalController) {
     addIcons({ list, add, chevronForward, trash, close, save, albums, barbell, calendar });
@@ -146,6 +149,49 @@ export class ProgramsPage implements OnInit {
       this.isLoading = false;
     }
   }
+
+  trackByRoutineId(index: number, r: Routine): string { return r.id; }
+
+  dropPrograms(event: CdkDragDrop<{ name: string; description?: string; routineCount: number; exerciseCount: number; daysPerWeek: number }[]>) {
+    const from = event.previousIndex;
+    const to = (this.hoverIndex ?? event.currentIndex);
+    if (from === to) { this.hoverIndex = null; return; }
+    const tmp = this.programs[to];
+    this.programs[to] = this.programs[from];
+    this.programs[from] = tmp;
+    this.hoverIndex = null;
+    // Persist order to storage (names and descriptions only)
+    const plain = this.programs.map(p => ({ name: p.name, description: p.description }));
+    this.storage.saveProgramsList(plain).catch(() => {});
+  }
+
+  dropProgramRoutines(event: CdkDragDrop<Routine[]>) {
+    const from = event.previousIndex;
+    const to = (this.hoverIndex ?? event.currentIndex);
+    if (from === to) { this.hoverIndex = null; return; }
+    const list = this.filteredRoutines;
+    const tmp = list[to];
+    list[to] = list[from];
+    list[from] = tmp;
+    // Reflect back to full routines list
+    const norm = (this.selectedProgram || '').trim().toLowerCase();
+    const others = this.routines.filter(r => ((r.programName || 'General').trim().toLowerCase()) !== norm);
+    this.filteredRoutines = list;
+    this.routines = [...others, ...this.filteredRoutines];
+    this.hoverIndex = null;
+    // Persist routines order
+    this.storage.saveRoutinesOrder(this.routines).catch(() => {});
+  }
+
+  onProgDragEntered(index: number) { if (this.hoverIndex !== index) this.hoverIndex = index; }
+  onProgDragExited(index: number) { if (this.hoverIndex === index) this.hoverIndex = null; }
+  onProgDragStarted(id: string) { this.draggingId = id; }
+  onProgDragEnded() { this.draggingId = null; this.hoverIndex = null; }
+
+  onRutDragEntered(index: number) { if (this.hoverIndex !== index) this.hoverIndex = index; }
+  onRutDragExited(index: number) { if (this.hoverIndex === index) this.hoverIndex = null; }
+  onRutDragStarted(id: string) { this.draggingId = id; }
+  onRutDragEnded() { this.draggingId = null; this.hoverIndex = null; }
 
 
 
