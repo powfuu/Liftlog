@@ -2,7 +2,7 @@
   position: fixed;
   inset: 0;
   z-index: 999999;
-  background: var(--liftlog-surface);
+  background: black;
   display: flex;
   flex-direction: column;
 }
@@ -72,12 +72,12 @@
   animation-delay: 1.6s;
 }
 .animation-entering {
-  animation: enterUp 0.88s cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation: enterSoft 1.8s ease both;
 }
 .animation-entered {
 }
 .animation-exiting {
-  animation: exitDown 0.8s cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation: exitSoft 1.6s ease both;
 }
 .bg-layer {
   display: none;
@@ -141,28 +141,32 @@
   gap: 0;
   flex: 1 1 auto;
   overflow: hidden;
+  background: black;
 }
 .slides-viewport {
   position: relative;
   overflow: auto;
   border-radius: 0;
-  height: 100vh;
+  height: 100svh;
   scroll-snap-type: x mandatory;
   -webkit-overflow-scrolling: touch;
   scroll-behavior: smooth;
+  background: black;
 }
 .slides-track {
   display: flex;
   height: 100%;
+  background: black;
 }
 .slide {
   position: relative;
   border-radius: 0;
   overflow: hidden;
-  height: 100vh;
+  height: 100svh;
   opacity: 1;
   transform: none;
   pointer-events: auto;
+  background: black;
 }
 .slide {
   flex: 0 0 100%;
@@ -177,10 +181,10 @@
   display: none;
 }
 .slide.slide-left {
-  animation: slideLeft 0.28s ease both;
+  animation: slideLeft 0.5s ease both;
 }
 .slide.slide-right {
-  animation: slideRight 0.28s ease both;
+  animation: slideRight 0.5s ease both;
 }
 .bg-image {
   position: absolute;
@@ -281,6 +285,39 @@
 }
 .slide:nth-child(2) .content { margin-top: -140px; }
 
+.slide:nth-child(2).active .content > * {
+  animation-duration: 1.8s;
+}
+.slide:nth-child(2).active .content > *:nth-child(1) {
+  animation-delay: 0s;
+}
+.slide:nth-child(2).active .content > *:nth-child(2) {
+  animation-delay: 0.18s;
+}
+.slide:nth-child(2).active .content > *:nth-child(3) {
+  animation-delay: 0.36s;
+}
+.slide:nth-child(2).active .content > *:nth-child(4) {
+  animation-delay: 0.54s;
+}
+.slide:nth-child(2).active .overlay-card {
+  animation-duration: 2s;
+  animation-delay: 0.72s;
+}
+
+.slide:nth-child(3).active .content > * {
+  animation-duration: 1.8s;
+}
+.slide:nth-child(3).active .content > *:nth-child(1) {
+  animation-delay: 0s;
+}
+.slide:nth-child(3).active .content > *:nth-child(2) {
+  animation-delay: 0.22s;
+}
+.slide:nth-child(3).active .content > *:nth-child(3) {
+  animation-delay: 0.48s;
+}
+
 .brand-mark {
   display: inline-flex;
   align-items: baseline;
@@ -356,7 +393,7 @@
   border-radius: 999px;
   background: #9ca3af;
   transform: scale(0.9);
-  transition: transform 0.24s ease, background 0.24s ease, box-shadow 0.24s ease;
+  transition: transform 0.5s ease, background 0.5s ease, box-shadow 0.5s ease;
   position: relative;
 }
 .nav .dots span.active {
@@ -426,6 +463,7 @@
     0 0 0 8px rgba(220, 38, 38, 0.18);
   animation: nextGlow 2s ease-in-out infinite;
 }
+.bottom-cta .nav-btn ion-icon { color: #ffffff; }
 .start-btn {
   display: inline-flex;
   align-items: center;
@@ -681,6 +719,35 @@
     opacity: 0;
   }
 }
+
+@keyframes enterSoft {
+  from { opacity: 0; transform: translateY(16px) scale(0.98); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+@keyframes exitSoft {
+  from { opacity: 1; transform: translateY(0) scale(1); }
+  to { opacity: 0; transform: translateY(12px) scale(0.98); }
+}
+
+.vignette-left {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: 22%;
+  pointer-events: none;
+  background: linear-gradient(90deg, rgba(0,0,0,0.60) 0%, rgba(0,0,0,0.25) 40%, rgba(0,0,0,0) 100%);
+}
+.vignette-right {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  right: 0;
+  width: 22%;
+  pointer-events: none;
+  background: linear-gradient(270deg, rgba(0,0,0,0.60) 0%, rgba(0,0,0,0.25) 40%, rgba(0,0,0,0) 100%);
+}
 @keyframes auroraFlow {
   0%,
   100% {
@@ -894,16 +961,14 @@
 .slide:not(.active) .overlay-card,
 .slide:not(.active) .preview-grid,
 .slide:not(.active) .preview-card,
-.slide:not(.active) .tint-red,
 .slide:not(.active) .top-gradient,
-.slide:not(.active) .bottom-gradient,
-.slide:not(.active) .vignette {
+.slide:not(.active) .bottom-gradient {
   opacity: 0;
   transform: translateY(8px) scale(0.98);
 }
 
 .slide.active .content > * {
-  animation: itemIn 0.88s cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation: itemIn 1.6s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 .slide.active .content > *:nth-child(1) {
   animation-delay: 0.02s;
@@ -918,31 +983,47 @@
   animation-delay: 0.2s;
 }
 .slide.active .overlay-card {
-  animation: itemIn 0.96s cubic-bezier(0.22, 1, 0.36, 1) both;
-  animation-delay: 0.24s;
+  animation: itemIn 1.7s cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation-delay: 0.35s;
 }
 .slide.active .preview-grid {
-  animation: itemIn 1s cubic-bezier(0.22, 1, 0.36, 1) both;
-  animation-delay: 0.28s;
+  animation: itemIn 1.8s cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation-delay: 0.40s;
 }
 .slide.active .preview-card {
-  animation: itemIn 1s cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation: itemIn 1.8s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 .slide.active .preview-card:nth-child(1) {
-  animation-delay: 0.32s;
+  animation-delay: 0.46s;
 }
 .slide.active .preview-card:nth-child(2) {
-  animation-delay: 0.36s;
+  animation-delay: 0.54s;
 }
 .slide.active .preview-card:nth-child(3) {
-  animation-delay: 0.4s;
+  animation-delay: 0.62s;
 }
 .slide.active .preview-card:nth-child(4) {
-  animation-delay: 0.44s;
+  animation-delay: 0.70s;
 }
 .slide.active .tint-red,
 .slide.active .top-gradient,
 .slide.active .bottom-gradient,
-.slide.active .vignette {
-  animation: fadeIn 0.8s ease both;
+.slide.active .vignette,
+.slide.active .vignette-left,
+.slide.active .vignette-right {
+  opacity: 1;
+  transform: none;
+}
+.slide:nth-child(1) .brand-mark,
+.slide:nth-child(1) .subtitle {
+  opacity: 0;
+  transform: translateY(12px);
+}
+.slide:nth-child(1).active .brand-mark {
+  animation: itemIn 1.2s cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation-delay: 0.1s;
+}
+.slide:nth-child(1).active .subtitle {
+  animation: itemIn 1.4s cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation-delay: 0.28s;
 }

@@ -10,7 +10,9 @@ import { addIcons } from 'ionicons';
   imports: [IonTabs, IonTabBar, IonTabButton, IonIcon, IonLabel],
 })
 export class TabsPage {
+  navFirstLoad = true;
   constructor() {
     addIcons({ home, barbell, list, statsChart, albums });
   }
+  ngAfterViewInit() { setTimeout(() => { this.navFirstLoad = false; }, 400); }
 }

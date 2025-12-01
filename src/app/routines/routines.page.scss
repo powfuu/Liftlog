@@ -184,7 +184,7 @@
   width: 100%;
   height: 100%;
   background: linear-gradient(90deg, transparent 0%, rgba(220, 38, 38, 0.12) 50%, transparent 100%);
-  animation: emptyShimmer 4s infinite;
+  animation: emptyShimmer 8s infinite;
   z-index: 1;
 }
 
@@ -196,7 +196,7 @@
   right: 0;
   height: 1px;
   background: linear-gradient(90deg, transparent 0%, rgba(220, 38, 38, 0.35) 50%, transparent 100%);
-  animation: emptyTopLine 2.8s infinite;
+  animation: emptyTopLine 5.6s infinite;
   z-index: 2;
 }
 
@@ -240,17 +240,17 @@
 }
 
 .card-enter {
-  animation: cardEnter .9s cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation: cardEnter 1.8s cubic-bezier(0.22, 1, 0.36, 1) both;
   will-change: transform, opacity;
 }
 
 .card-initial {
-  animation: cardInitial 1.4s cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation: cardInitial 2.8s cubic-bezier(0.16, 1, 0.3, 1) both;
   will-change: transform, opacity;
 }
 
 .card-exit {
-  animation: cardCollapseFade .28s cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation: cardCollapseFade .56s cubic-bezier(0.22, 1, 0.36, 1) both;
   will-change: transform, opacity, max-height, margin, padding;
 }
 
@@ -462,23 +462,23 @@
   transform: scale(0.96);
 }
 .page-enter {
-  animation: pageFadeIn .5s ease both;
+  animation: pageFadeIn 0.5s ease both;
 }
 
 .header-anim {
-  animation: headerFade .5s ease both;
+  animation: headerFade 0.5s ease both;
 }
 
 .subtitle-anim {
-  animation: headerFade .6s ease both;
+  animation: headerFade 0.6s ease both;
 }
 
 .pill-anim {
-  animation: headerFade .7s ease both;
+  animation: headerFade 0.7s ease both;
 }
 
 .empty-anim {
-  animation: emptyFadeUp .5s ease both;
+  animation: emptyFadeUp 0.5s ease both;
 }
 
 @keyframes pageFadeIn {

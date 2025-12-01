@@ -9,9 +9,8 @@ export class AlertService {
     const toast = await this.toastController.create({
       message,
       duration: 2500,
-      position: 'bottom',
+      position: 'top',
       color,
-      cssClass: 'liftlog-toast'
     });
     await toast.present();
   }
@@ -33,7 +32,6 @@ export class AlertService {
           role: 'confirm'
         }
       ],
-      cssClass: 'liftlog-alert'
     });
     await alert.present();
     const result = await alert.onDidDismiss();

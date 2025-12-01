@@ -14,6 +14,11 @@
       [icon]="'stats-chart'"
       [items]="[{icon:'calendar', text: selectedTimeRange}, {icon:'information-circle', text: selectedExercise}]">
     </app-notch-header>
+    <div class="mt-4">
+      <button class="clear-btn-big" (click)="clearAllData()">
+        LIMPIAR datos
+      </button>
+    </div>
   </div>
   <!-- Filters -->
   <div class="px-4 py-6 fade-in-up">

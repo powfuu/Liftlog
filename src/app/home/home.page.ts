@@ -985,9 +985,9 @@ export class HomePage implements OnInit {
     const dd = String(d.getDate()).padStart(2, '0');
     const mm = String(d.getMonth() + 1).padStart(2, '0');
     const yyyy = d.getFullYear();
-    this.todayDateStr = `${dd}-${mm}-${yyyy}`;
+    this.todayDateStr = `${dd}-${mm}`;
     this.todayDateShort = `${dd}-${mm}`;
-    this.selectedDateUS = `${mm}-${dd}-${yyyy}`;
+    this.selectedDateUS = `${mm}-${dd}`;
     this.isSelectedToday = isSameDay(d, new Date());
     {
       const t = new Date();

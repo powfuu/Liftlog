@@ -1,6 +1,6 @@
 <ion-tabs>
   <ion-tab-bar slot="bottom" class="glass-nav">
-    <div class="glass-nav-container">
+    <div class="glass-nav-container" [class.nav-first-load]="navFirstLoad">
       <ion-tab-button tab="home" class="glass-nav-button">
         <div class="nav-icon-wrapper">
           <ion-icon name="barbell" class="nav-icon"></ion-icon>

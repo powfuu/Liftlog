@@ -1,11 +1,12 @@
-import { Component, OnInit, ElementRef, ViewChild, AfterViewInit } from '@angular/core';
+import { Component, OnInit, ElementRef, ViewChild, AfterViewInit, inject } from '@angular/core';
 import { createGesture } from '@ionic/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { IonIcon, ModalController } from '@ionic/angular/standalone';
+import { IonIcon } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
 import { close, chevronForward, chevronBack, informationCircle, globe, checkmark, barbell, statsChart, flame, calendar } from 'ionicons/icons';
 import { StorageService } from '../../services/storage.service';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-onboarding-modal',
@@ -15,7 +16,7 @@ import { StorageService } from '../../services/storage.service';
   imports: [CommonModule, FormsModule, IonIcon]
 })
 export class OnboardingModalComponent implements OnInit, AfterViewInit {
-  step: number = 0;
+  step: number = -1;
   animationState: 'entering' | 'entered' | 'exiting' = 'entering';
   language: 'en' | 'es' = 'en';
   stepTransition: '' | 'left' | 'right' = '';
@@ -29,15 +30,21 @@ export class OnboardingModalComponent implements OnInit, AfterViewInit {
   imgCenter = 'https://images.pexels.com/photos/31849599/pexels-photo-31849599.jpeg?_gl=1*1sfsmns*_ga*MTI0MjAwNzEzOS4xNzY0NTIyMzM2*_ga_8JE65Q40S6*czE3NjQ1MjIzMzYkbzEkZzEkdDE3NjQ1MjM0OTYkajckbDAkaDA.';
   imgRight = 'https://images.pexels.com/photos/5327534/pexels-photo-5327534.jpeg?_gl=1*107su3t*_ga*MTI0MjAwNzEzOS4xNzY0NTIyMzM2*_ga_8JE65Q40S6*czE3NjQ1MjIzMzYkbzEkZzEkdDE3NjQ1MjI0NTgkajEyJGwwJGgw';
   private swipeGesture?: any;
+  showSplash = true;
 
-  constructor(private modalController: ModalController, private storage: StorageService) {
-    addIcons({ close, chevronForward, chevronBack, informationCircle, globe, checkmark, barbell, statsChart, flame, calendar });
-  }
+  private storage = inject(StorageService);
+  private router = inject(Router);
 
   async ngOnInit() {
+    addIcons({ close, chevronForward, chevronBack, informationCircle, globe, checkmark, barbell, statsChart, flame, calendar });
     const lang = await this.storage.getLanguage();
     this.language = lang || 'en';
-    setTimeout(() => { this.animationState = 'entered'; }, 0);
+    this.preloadImages();
+    setTimeout(() => {
+      this.showSplash = false;
+      this.step = 0;
+      this.animationState = 'entered';
+    }, 2500);
   }
 
   setLanguage(lang: 'en' | 'es') { this.language = lang; }
@@ -99,11 +106,24 @@ export class OnboardingModalComponent implements OnInit, AfterViewInit {
     }, 120);
   }
 
+  private preloadImages() {
+    const urls = [this.imgLeft, this.imgCenter, this.imgRight];
+    urls.forEach((u, i) => {
+      try {
+        const img = new Image();
+        img.crossOrigin = 'anonymous';
+        img.decoding = 'async';
+        img.referrerPolicy = 'no-referrer';
+        img.src = u;
+      } catch {}
+    });
+  }
+
   async complete() {
     await this.storage.setLanguage(this.language);
     await this.storage.setOnboardingCompleted(true);
     this.animationState = 'exiting';
-    setTimeout(() => this.modalController.dismiss(true), 300);
+    setTimeout(() => this.router.navigate(['/tabs/home']), 300);
   }
 
   dismiss() {}

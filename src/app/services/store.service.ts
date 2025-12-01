@@ -34,6 +34,8 @@ const initialState: AppState = {
 })
 export class StoreService {
   private state$ = new BehaviorSubject<AppState>(initialState);
+  private cleared$ = new BehaviorSubject<number>(0);
+  dataCleared$ = this.cleared$.asObservable();
 
   constructor(private storageService: StorageService) {
     // Initialize store asynchronously to avoid blocking
@@ -202,5 +204,9 @@ export class StoreService {
    */
   resetState(): void {
     this.state$.next(initialState);
+  }
+
+  announceDataCleared(): void {
+    this.cleared$.next(Date.now());
   }
 }

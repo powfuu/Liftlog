@@ -7,6 +7,9 @@
           <span>{{ todayDateStr }}</span>
         </button>
       </div>
+      <div class="top-center" aria-hidden="true">
+        <img src="assets/icon/favicon.png" class="favicon" />
+      </div>
       <div class="top-right">
         <button class="lang-btn" (click)="toggleLanguage()" aria-label="Language">
           <ion-icon name="globe"></ion-icon>
@@ -163,12 +166,16 @@
             </div>
             <div class="accordion-details p-4 exercise-details" [class.expanded]="isExpanded(exercise)" [attr.id]="'exercise-details-' + exercise.exerciseId">
               <div class="section-spacing">
-                <div class="modal-card-header" style="justify-content: space-between; align-items: center;">
-                  <div class="modal-card-title">
-                    <ion-icon name="swap-vertical"></ion-icon>
-                    <span class="sets-label">Sets</span>
-                  </div>
+              <div class="modal-card-header" style="justify-content: space-between; align-items: center;">
+                <div class="modal-card-title">
+                  <ion-icon name="swap-vertical"></ion-icon>
+                  <span class="sets-label">Sets</span>
                 </div>
+                <button class="modal-add-set-btn" (click)="addSet(exercise)" aria-label="Add Set">
+                  <ion-icon name="add"></ion-icon>
+                  <span>Add Set</span>
+                </button>
+              </div>
                 <div class="sets-table" *ngIf="getSets(exercise).length > 0">
                   <table class="glass-table" aria-label="Sets table">
                     <thead>
@@ -233,7 +240,7 @@
     <span>{{ getStartButtonText() }}</span>
   </button>
   <ion-modal [isOpen]="showPreview" class="preview-modal" (didDismiss)="closePreview()" initialBreakpoint="0.8"
-    [breakpoints]="[0.6, 0.8, 1]" backdropDismiss="true">
+    [breakpoints]="[0.3, 0.6, 0.8, 0.9]" backdropDismiss="true">
     <ng-template>
       <div class="preview-container">
         <div class="preview-hero">

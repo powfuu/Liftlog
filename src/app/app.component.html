@@ -1,12 +1,6 @@
 <ion-app>
   <ion-router-outlet></ion-router-outlet>
-  <ion-modal
-    [isOpen]="showOnboarding"
-    cssClass="onboarding-fullscreen"
-    [backdropDismiss]="false"
-    (didDismiss)="onOnboardingDismiss($event)">
-    <ng-template>
-      <app-onboarding-modal></app-onboarding-modal>
-    </ng-template>
-  </ion-modal>
+  <button class="keyboard-close-btn" (click)="closeKeyboard()" aria-label="Cerrar teclado">
+    <ion-icon name="chevron-down"></ion-icon>
+  </button>
 </ion-app>

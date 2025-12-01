@@ -1,4 +1,12 @@
 <div class="onboard-container" [class]="'animation-' + animationState">
+  <div class="initial-splash" *ngIf="showSplash">
+    <div class="splash-content">
+      <div class="spinner-wrap">
+        <div class="ring"></div>
+        <img src="assets/icon/favicon.png" alt="Liftlog" class="splash-favicon" />
+      </div>
+    </div>
+  </div>
   <div class="bg-decor">
     <div class="aurora a1"></div>
     <div class="aurora a2"></div>
@@ -16,11 +24,13 @@
     <div class="slides-viewport" #viewport (scroll)="onScroll()">
       <div class="slides-track">
         <section class="slide" [class.active]="step===0">
-          <img class="bg-photo pos-center" [src]="imgLeft" alt="fitness" [attr.referrerpolicy]="'no-referrer'" [attr.crossorigin]="'anonymous'" />
+          <img class="bg-photo pos-center" [src]="imgLeft" alt="fitness" loading="eager" fetchpriority="high" decoding="sync" [attr.referrerpolicy]="'no-referrer'" [attr.crossorigin]="'anonymous'" />
           <div class="tint-red"></div>
           <div class="top-gradient"></div>
           <div class="bottom-gradient"></div>
           <div class="vignette"></div>
+          <div class="vignette-left"></div>
+          <div class="vignette-right"></div>
           <div class="content">
             <div class="brand-mark"><span class="lift">LIFT</span><span class="log">LOG</span></div>
             <div class="subtitle">El tracker fitness definitivo</div>
@@ -49,11 +59,13 @@
           </div>
         </section>
         <section class="slide" [class.active]="step===1">
-          <img class="bg-photo pos-center" [src]="imgCenter" alt="fitness" [attr.referrerpolicy]="'no-referrer'" [attr.crossorigin]="'anonymous'" />
+          <img class="bg-photo pos-center" [src]="imgCenter" alt="fitness" loading="eager" fetchpriority="low" decoding="async" [attr.referrerpolicy]="'no-referrer'" [attr.crossorigin]="'anonymous'" />
           <div class="tint-red"></div>
           <div class="top-gradient"></div>
           <div class="bottom-gradient"></div>
           <div class="vignette"></div>
+          <div class="vignette-left"></div>
+          <div class="vignette-right"></div>
           <div class="content">
             <div class="title">Ajustes rápidos</div>
             <div class="subtitle">Selecciona tu idioma preferido.</div>
@@ -80,11 +92,13 @@
           </div>
         </section>
         <section class="slide" [class.active]="step===2">
-          <img class="bg-photo pos-right" [src]="imgRight" alt="fitness" [attr.referrerpolicy]="'no-referrer'" [attr.crossorigin]="'anonymous'" />
+          <img class="bg-photo pos-right" [src]="imgRight" alt="fitness" loading="eager" fetchpriority="low" decoding="async" [attr.referrerpolicy]="'no-referrer'" [attr.crossorigin]="'anonymous'" />
           <div class="tint-red"></div>
           <div class="top-gradient"></div>
           <div class="bottom-gradient"></div>
           <div class="vignette"></div>
+          <div class="vignette-left"></div>
+          <div class="vignette-right"></div>
           <div class="content">
             <div class="title">¡Listo para entrenar!</div>
             <div class="subtitle">Levanta, registra y mejora cada día.</div>

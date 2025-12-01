@@ -12,10 +12,10 @@
   -webkit-backdrop-filter: blur(24px) saturate(180%);
   overflow-y: hidden;
   overflow-x: hidden;
-  animation: bgFadeIn .4s ease both;
+  animation: bgFadeIn .22s ease both;
   display: flex;
   flex-direction: column;
-  height: 100vh;
+  height: 100svh;
   padding-bottom: 50px;
   will-change: opacity, transform;
 }
@@ -26,7 +26,7 @@
 }
 
 .animation-entering {
-  animation: slideInUp 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+  animation: slideInUp 0.28s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
 }
 
 .animation-entered {
@@ -34,7 +34,7 @@
 }
 
 .animation-exiting {
-  animation: slideOutDown 0.3s cubic-bezier(0.55, 0.085, 0.68, 0.53) forwards;
+  animation: slideOutDown 0.24s cubic-bezier(0.55, 0.085, 0.68, 0.53) forwards;
   backdrop-filter: none;
   -webkit-backdrop-filter: none;
 }
@@ -194,14 +194,14 @@
 .modal-body { padding: 16px; padding-top: 92px; flex: 1; min-height: 0; background: transparent; border: none; }
 .modal-body.info-padding { padding-left: 32px; padding-right: 32px; }
 
-.modal-enter { animation: pageFadeIn .45s ease both; }
+.modal-enter { animation: pageFadeIn .28s ease both; }
 @keyframes pageFadeIn { from { opacity: 0; } to { opacity: 1; } }
 
-.tab-enter { animation: tabFade .35s ease both; }
+.tab-enter { animation: tabFade .28s ease both; }
 @keyframes tabFade { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
-.tab-slide-left { animation: slideLeft .35s ease both; }
+.tab-slide-left { animation: slideLeft .28s ease both; }
 @keyframes slideLeft { from { opacity: 0; transform: translateX(24px); } to { opacity: 1; transform: translateX(0); } }
-.tab-slide-right { animation: slideRight .35s ease both; }
+.tab-slide-right { animation: slideRight .28s ease both; }
 @keyframes slideRight { from { opacity: 0; transform: translateX(-24px); } to { opacity: 1; transform: translateX(0); } }
 
 @media (min-width: 560px) {
@@ -220,7 +220,7 @@
   border: none;
   box-shadow: none;
   margin-bottom: 0;
-  animation: cardFadeIn .5s ease both;
+  animation: cardFadeIn .32s ease both;
   height: 100%;
 }
 
@@ -314,7 +314,7 @@
   width: 100%;
   height: 100%;
   background: linear-gradient(90deg, transparent 0%, rgba(220, 38, 38, 0.12) 50%, transparent 100%);
-  animation: emptyShimmer 4s infinite;
+  animation: emptyShimmer 8s infinite;
   z-index: 1;
 }
 
@@ -326,7 +326,7 @@
   right: 0;
   height: 1px;
   background: linear-gradient(90deg, transparent 0%, rgba(220, 38, 38, 0.35) 50%, transparent 100%);
-  animation: emptyTopLine 2.8s infinite;
+  animation: emptyTopLine 5.6s infinite;
   z-index: 2;
 }
 
@@ -372,7 +372,7 @@ input::placeholder, textarea::placeholder {
 .exercise-item:hover { transform: translateY(0); }
 
 .exercise-item.slide-in {
-  animation: slideInRight 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+  animation: slideInRight 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
 }
 
 @keyframes slideInRight {
@@ -465,7 +465,7 @@ button:active {
 }
 
 .fade-in-up {
-  animation: fadeInUp 0.3s ease-out;
+  animation: fadeInUp 0.6s ease-out;
 }
 
 /* Premium glass effect */
@@ -836,12 +836,13 @@ button:active {
   border: none;
   box-shadow: none;
   padding: 0;
-  position: static;
+  position: relative;
   width: 100%;
   height: 100%;
   padding-left: 10px;
   padding-right: 10px;
-  margin-top: 40px;
+  margin-top: calc(env(safe-area-inset-top) + 40px);
+  overflow: hidden;
 }
 .tab-surface::before {
   content: '';
@@ -969,7 +970,7 @@ button:active {
 .save-fab {
   position: fixed !important;
   right: 20px;
-  bottom: 44px;
+  bottom: calc(44px + env(safe-area-inset-bottom));
   width: 56px;
   height: 56px;
   border-radius: 999px;
@@ -980,18 +981,20 @@ button:active {
   align-items: center;
   justify-content: center;
   box-shadow: 0 12px 30px rgba(0,0,0,0.4), 0 0 14px rgba(220, 38, 38, 0.28);
-  transition: transform .2s ease, box-shadow .2s ease, background .2s ease;
+  transition: bottom .22s cubic-bezier(0.22, 1, 0.36, 1), box-shadow .22s cubic-bezier(0.22, 1, 0.36, 1), background .22s cubic-bezier(0.22, 1, 0.36, 1), opacity .22s cubic-bezier(0.22, 1, 0.36, 1);
   z-index: 2000;
   pointer-events: auto;
+  will-change: bottom;
 }
-.save-fab {
-  @supports (padding-bottom: env(safe-area-inset-bottom)) {
-    bottom: calc(44px + env(safe-area-inset-bottom));
-  }
-}
+.save-fab { }
 .save-fab:hover { transform: translateY(-2px); }
 .save-fab:active { transform: translateY(0); }
 .save-fab ion-icon { font-size: 24px; color: #ffffff; }
+
+body.keyboard-open .save-fab {
+  bottom: calc(env(safe-area-inset-bottom) + 44px + var(--kb-height));
+  box-shadow: 0 10px 26px rgba(0,0,0,0.36), 0 0 12px rgba(220, 38, 38, 0.20);
+}
 .notes-section { display: flex; flex-direction: column; gap: 8px; }
 .notes-box {
   background: rgba(0,0,0,0.18);
@@ -1186,10 +1189,10 @@ button:active {
   .accordion-details.expanded { padding: 14px 16px; }
   .glass-table .sf-input { font-size: 16px; }
 }
-.accordion-list { margin-top: 12px; }
+.accordion-list { margin-top: 12px; overflow-y: auto; overflow-x: hidden; height: auto; max-height: calc(100svh - 160px); -webkit-overflow-scrolling: touch; scroll-behavior: smooth; }
 .modal-body {
   flex: 1 1 auto;
-  overflow-y: auto;
+  overflow: hidden;
   overflow-x: hidden;
   -webkit-overflow-scrolling: touch;
   will-change: opacity, transform;

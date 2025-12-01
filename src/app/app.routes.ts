@@ -2,6 +2,10 @@ import { Routes } from '@angular/router';
 
 export const routes: Routes = [
   {
+    path: 'onboarding',
+    loadComponent: () => import('./onboarding/onboarding-modal/onboarding-modal.component').then((m) => m.OnboardingModalComponent),
+  },
+  {
     path: 'tabs',
     loadComponent: () => import('./tabs/tabs.page').then((m) => m.TabsPage),
     children: [

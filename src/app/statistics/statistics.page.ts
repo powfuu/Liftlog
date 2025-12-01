@@ -6,6 +6,7 @@ import { NotchHeaderComponent } from '../shared/notch-header/notch-header.compon
 import { Observable, Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 import { StoreService } from '../services/store.service';
+import { StorageService } from '../services/storage.service';
 import { ExerciseLog } from '../models/exercise.model';
 import { ProgressData } from '../models/routine.model';
 import { UtilService } from '../services/util.service';
@@ -47,7 +48,8 @@ export class StatisticsPage implements OnInit, OnDestroy, AfterViewInit {
 
   constructor(
     private store: StoreService,
-    private utilService: UtilService
+    private utilService: UtilService,
+    private storage: StorageService
   ) {
     this.exerciseLogs$ = this.store.select(state => state.exerciseLogs);
     addIcons({ trophy });
@@ -318,5 +320,15 @@ export class StatisticsPage implements OnInit, OnDestroy, AfterViewInit {
     setTimeout(() => {
       this.createCharts();
     }, 100);
+  }
+  async clearAllData() {
+    try {
+      await this.storage.clearAllData();
+      this.store.resetState();
+      await this.storage.setOnboardingCompleted(false);
+      location.reload();
+    } catch (e) {
+      console.error('Clear data failed', e);
+    }
   }
 }

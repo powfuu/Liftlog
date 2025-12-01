@@ -95,8 +95,12 @@ export class RoutineModalComponent implements OnInit, OnDestroy {
     this.activeTab = 'exercises';
     if (hadExercises) {
       setTimeout(() => {
-        const el = document.getElementById('exercise-' + id);
-        el?.scrollIntoView({ behavior: 'smooth', block: 'start', inline: 'nearest' });
+        const el = document.getElementById('exercise-' + id) as HTMLElement | null;
+        const container = document.querySelector('.accordion-list') as HTMLElement | null;
+        if (el && container) {
+          const top = el.offsetTop - 8;
+          container.scrollTo({ top, behavior: 'smooth' });
+        }
       }, 0);
     }
   }

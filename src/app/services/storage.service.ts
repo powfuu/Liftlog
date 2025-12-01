@@ -738,6 +738,28 @@ export class StorageService {
     await Preferences.set({ key: 'onboarding_completed', value: val ? 'true' : 'false' });
   }
 
+  async clearAllData(): Promise<void> {
+    if (this.isWebEnvironment()) {
+      await Preferences.clear();
+      return;
+    }
+    if (!this.db) throw new Error('Database not initialized');
+    try {
+      await this.db.run('DELETE FROM exercise_sets');
+      await this.db.run('DELETE FROM exercise_logs');
+      await this.db.run('DELETE FROM routine_exercises');
+      await this.db.run('DELETE FROM routine_days');
+      await this.db.run('DELETE FROM routines');
+      await this.db.run('DELETE FROM exercises');
+      await this.db.run('DELETE FROM user_preferences');
+      await Preferences.remove({ key: 'programs' });
+      await Preferences.remove({ key: 'routines' });
+      await Preferences.remove({ key: 'training_state' });
+      await Preferences.remove({ key: 'language' });
+      await Preferences.remove({ key: 'onboarding_completed' });
+    } catch {}
+  }
+
   async getLanguage(): Promise<'en' | 'es'> {
     const res = await Preferences.get({ key: 'language' });
     const v = (res.value || 'en');
