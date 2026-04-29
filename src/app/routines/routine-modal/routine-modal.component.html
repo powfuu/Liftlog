@@ -1,0 +1,344 @@
+<div class="modal-container" [class]="'animation-' + animationState">
+  <div class="sticky top-0 z-50 modal-header">
+  <div class="px-6 py-4">
+    <div class="modal-notch">
+      <div class="notch-title">
+        <ion-icon name="list" class="modal-title-icon"></ion-icon>
+        <span>{{ routineName?.trim() ? routineName : ('routines.create_modal_title' | translate) }}</span>
+      </div>
+      <div class="notch-center" role="tablist" aria-label="Routine tabs">
+          <button
+            class="notch-tab"
+            *ngIf="!routine"
+            [class.selected]="activeTab === 'import'"
+            role="tab"
+            [attr.aria-selected]="activeTab === 'import'"
+            (click)="setTabImport()"
+            aria-label="Import">
+            <ion-icon name="save"></ion-icon>
+          </button>
+          <button
+            class="notch-tab"
+            [class.selected]="activeTab === 'exercises'"
+            role="tab"
+            [attr.aria-selected]="activeTab === 'exercises'"
+            (click)="setTab('exercises')"
+            aria-label="Exercises">
+            <ion-icon name="barbell"></ion-icon>
+          </button>
+          <button
+            class="notch-tab"
+            [class.selected]="activeTab === 'info'"
+            role="tab"
+            [attr.aria-selected]="activeTab === 'info'"
+            (click)="setTab('info')"
+            aria-label="Information">
+            <ion-icon name="information-circle"></ion-icon>
+          </button>
+        </div>
+        <div class="notch-actions">
+          <button class="notch-action" (click)="dismiss()" aria-label="Close modal">
+            <ion-icon name="close"></ion-icon>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Content -->
+  <div class="modal-body modal-enter" [class.info-padding]="activeTab === 'info'">
+    <!-- Routine Info Section -->
+    <div class="modal-card tab-enter tab-surface" *ngIf="activeTab === 'info'" [class.tab-slide-left]="tabTransition==='left'" [class.tab-slide-right]="tabTransition==='right'">
+      <div class="modal-card-header">
+        <div class="modal-card-title" style="margin-bottom: 10px;">
+          <ion-icon name="create"></ion-icon>
+          <span>{{ 'routines.info' | translate }}</span>
+        </div>
+      </div>
+      <div class="modal-card-content content-surface">
+        <div class="form-group" *ngIf="routine" style="display:flex; align-items:center; justify-content: space-between; gap:12px; margin-bottom:10px;">
+          <label style="margin:0;">Routine ID</label>
+          <div class="code-chip" [title]="('routines.id_label' | translate)" (click)="copyRoutineCode()">
+            <span>{{ routineCode || '—' }}</span>
+            <button class="copy-btn" (click)="copyRoutineCode()"><ion-icon name="copy-outline"></ion-icon></button>
+          </div>
+        </div>
+        <div class="form-group">
+          <label>{{ 'routines.name_label' | translate }}</label>
+          <input
+            type="text"
+            [(ngModel)]="routineName"
+            [placeholder]="'routines.name_placeholder' | translate"
+            id="routine-name-input"
+            maxlength="50">
+          <div class="helper">{{ routineName.length }}/50</div>
+        </div>
+        <div class="form-group">
+          <label>{{ 'routines.desc_label' | translate }} ({{ 'common.optional' | translate }})</label>
+          <textarea
+            [(ngModel)]="routineDescription"
+            [placeholder]="'routines.desc_placeholder' | translate"
+            rows="3"
+            maxlength="200"></textarea>
+          <div class="helper">{{ routineDescription.length }}/200</div>
+        </div>
+        <div class="form-group">
+          <label class="days-label" style="margin-bottom: 8px;">{{ 'routines.days_label' | translate }}</label>
+          <div class="days-selector" role="group" aria-label="Select days">
+            <button
+              *ngFor="let day of daysList"
+              type="button"
+              class="day-chip"
+              [class.selected]="selectedDays.includes(day.value)"
+              (click)="toggleDay(day.value)"
+              [attr.aria-pressed]="selectedDays.includes(day.value)"
+            >
+              {{ day.label | translate }}
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Import by Code Section -->
+    <div class="modal-card tab-enter tab-surface" *ngIf="activeTab === 'import'">
+      <div class="content-surface import-section">
+        <ion-icon name="save" class="import-icon"></ion-icon>
+        <h3 class="import-title">{{ 'routines.import_title' | translate }}</h3>
+        <p class="import-desc">{{ 'routines.import_desc' | translate }}</p>
+        <input type="number" inputmode="numeric" pattern="[0-9]*" [(ngModel)]="importCode" maxlength="7" [placeholder]="'routines.import_placeholder' | translate" class="import-input" #importField (input)="onImportInput(importField)" />
+        <button class="modal-add-btn import-btn" (click)="importByCode()">
+          <ion-icon name="save"></ion-icon>
+          <span>{{ 'routines.import_btn' | translate }}</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Exercises Section -->
+    <div class="modal-card space-y-4 tab-enter tab-surface" *ngIf="activeTab === 'exercises'" [class.tab-slide-left]="tabTransition==='left'" [class.tab-slide-right]="tabTransition==='right'">
+      <div class="modal-card-header">
+        <div class="modal-card-title">
+          <ion-icon name="barbell"></ion-icon>
+          <span>{{ 'routines.exercises_label' | translate }}</span>
+        </div>
+        <button (click)="openAddForm()" class="modal-add-btn" aria-label="Add exercise">
+          <ion-icon name="add"></ion-icon>
+          <span>{{ 'routines.add_exercise' | translate }}</span>
+        </button>
+      </div>
+
+
+      <!-- Instant creation: exercise appears directly in the list -->
+
+      <!-- Exercise List -->
+      <div class="accordion-list content-surface" *ngIf="exercises.length > 0" cdkDropList [cdkDropListData]="exercises" [cdkDropListOrientation]="'vertical'" (cdkDropListDropped)="dropCdk($event)">
+          <div
+        *ngFor="let exercise of exercises; let i = index; trackBy: trackByExerciseId"
+        class="exercise-item glass-item"
+        cdkDrag
+        [cdkDragStartDelay]="{touch: 0, mouse: 0}"
+        cdkDragLockAxis="y"
+        [class.dragging]="draggingId===exercise.exerciseId"
+        (cdkDragStarted)="onDragStarted(exercise.exerciseId)"
+        (cdkDragEnded)="onDragEnded()"
+        (cdkDragEntered)="onDragEntered(i)"
+        (cdkDragExited)="onDragExited(i)"
+        [class.drop-target]="hoverIndex===i"
+        [class.open]="isExpanded(exercise)"
+        [class.slide-in]="animationState === 'entered' && !hasAnimated(exercise.exerciseId)"
+        (animationend)="onExerciseAnimationEnd(exercise.exerciseId)"
+        [attr.id]="'exercise-' + exercise.exerciseId">
+
+          <!-- Exercise Accordion Header -->
+          <button
+            type="button"
+            class="accordion-header p-4 border-b"
+            (click)="onHeaderClick(exercise)"
+            [attr.aria-expanded]="isExpanded(exercise)"
+            [attr.aria-controls]="'exercise-details-' + exercise.exerciseId">
+            <div class="drag-strip" cdkDragHandle [attr.aria-label]="('common.drag_area' | translate)"></div>
+            <div class="drag-handle" cdkDragHandle [attr.aria-label]="('common.drag_to_reorder' | translate)" (click)="$event.stopPropagation()">
+              <span class="dot"></span><span class="dot"></span>
+              <span class="dot"></span><span class="dot"></span>
+              <span class="dot"></span><span class="dot"></span>
+            </div>
+            <div class="accordion-text">
+              <div class="accordion-title">
+                {{ exercise.exerciseName?.trim() ? exercise.exerciseName : ('common.exercise' | translate) }}
+              </div>
+              <div class="accordion-subtitle" aria-label="Exercise summary">
+                <span class="subtitle-label">{{ 'common.sets' | translate }}</span>
+                <span class="subtitle-number">{{ getSets(exercise).length }}</span>
+                • <span class="subtitle-label">{{ 'common.reps' | translate }}</span>
+                <span class="subtitle-number">{{ getSets(exercise).length > 0 ? getRepsSummary(exercise) : '-' }}</span>
+              </div>
+            </div>
+            <div class="accordion-actions">
+              <div (click)="removeExercise(i); $event.stopPropagation()" class="exercise-trash-btn" aria-label="Remove exercise" role="button" tabindex="0">
+                <ion-icon name="trash"></ion-icon>
+              </div>
+              <div class="accordion-toggle" aria-label="Toggle details" (click)="toggleExercise(exercise); $event.stopPropagation()" role="button" tabindex="0">
+                <ion-icon name="chevron-down" class="accordion-chevron" [class.expanded]="isExpanded(exercise)"></ion-icon>
+              </div>
+            </div>
+          </button>
+          <div class="drag-placeholder" *cdkDragPlaceholder></div>
+
+          <!-- Exercise Details -->
+          <div
+            class="accordion-details p-4 exercise-details"
+            [class.expanded]="isExpanded(exercise)"
+            [attr.id]="'exercise-details-' + exercise.exerciseId">
+            <div class="section-spacing">
+              <div class="form-group" style="margin-bottom: 12px;">
+                <label>{{ 'common.exercise' | translate }}</label>
+                <input
+                  type="text"
+                  [(ngModel)]="exercise.exerciseName"
+                  [placeholder]="'common.exercise' | translate"
+                  maxlength="50"
+                  aria-label="Exercise name">
+              </div>
+              <div class="modal-card-header" style="justify-content: space-between; align-items: center;">
+                <div class="modal-card-title">
+                  <ion-icon name="swap-vertical"></ion-icon>
+                  <span class="sets-label">{{ 'common.sets' | translate }}</span>
+                </div>
+                <button class="modal-add-set-btn" (click)="addSet(exercise)" aria-label="Add Set">
+                  <ion-icon name="add"></ion-icon>
+                  <span>{{ 'common.add_set' | translate }}</span>
+                </button>
+              </div>
+              <div class="sets-table" *ngIf="getSets(exercise).length > 0">
+                <table class="glass-table" aria-label="Sets table">
+                  <thead>
+                    <tr>
+                      <th>{{ 'common.reps' | translate }}</th>
+                      <th>{{ 'common.weight' | translate }}</th>
+                      <th>{{ 'common.rir' | translate }}</th>
+                      <th></th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr *ngFor="let s of getSets(exercise); let si = index; trackBy: trackBySetIndex">
+                      <td>
+                        <input type="number" inputmode="numeric" pattern="[0-9]*" [ngModel]="getDisplayValue(exercise, si, 'reps')" (ngModelChange)="updateSetValue(exercise, si, 'reps', $event)" (focus)="onInputFocus(exercise, si, 'reps')" (blur)="onInputBlur(exercise, si, 'reps')" min="0" max="200" step="1" class="sf-input" aria-label="Reps" />
+                      </td>
+                      <td>
+                        <div class="sf-combo">
+                          <input type="number" inputmode="decimal" [ngModel]="getDisplayValue(exercise, si, 'weight')" (ngModelChange)="updateSetValue(exercise, si, 'weight', $event)" (focus)="onInputFocus(exercise, si, 'weight')" (blur)="onInputBlur(exercise, si, 'weight')" min="0" max="1000" step="0.1" class="sf-input" aria-label="Weight" />
+                          <div class="unit-dd">
+                            <button class="unit-dd-btn" (click)="toggleUnitDropdown(exercise, si)" [attr.aria-expanded]="isUnitDropdownOpen(exercise, si)">
+                              <span class="label">{{ (s.unit || exercise.weightUnit)?.toUpperCase() }}</span>
+                              <ion-icon [name]="isUnitDropdownOpen(exercise, si) ? 'chevron-up' : 'chevron-down'"></ion-icon>
+                            </button>
+                            <div class="unit-dd-menu" [class.open]="isUnitDropdownOpen(exercise, si)" [attr.aria-hidden]="!isUnitDropdownOpen(exercise, si)">
+                              <button class="unit-dd-item" [class.selected]="(s.unit || exercise.weightUnit)==='kg'" [class.just-selected]="isUnitJustSelected(exercise, si)" (click)="setUnitForSet(exercise, si, 'kg')">{{ 'common.kg' | translate }}</button>
+                              <button class="unit-dd-item" [class.selected]="(s.unit || exercise.weightUnit)==='lb'" [class.just-selected]="isUnitJustSelected(exercise, si)" (click)="setUnitForSet(exercise, si, 'lb')">{{ 'common.lb' | translate }}</button>
+                            </div>
+                          </div>
+                        </div>
+                      </td>
+                      <td>
+                        <input type="number" inputmode="numeric" pattern="[0-9]*" [ngModel]="getDisplayValue(exercise, si, 'rir')" (ngModelChange)="updateSetValue(exercise, si, 'rir', $event)" (focus)="onInputFocus(exercise, si, 'rir')" (blur)="onInputBlur(exercise, si, 'rir')" min="0" max="10" step="1" class="sf-input" aria-label="RIR" />
+                      </td>
+                      <td>
+                        <button class="exercise-trash-btn" (click)="removeSet(exercise, si)" [attr.aria-label]="'common.delete_set' | translate"><ion-icon name="trash"></ion-icon></button>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+              <div class="goal-section" *ngIf="getSets(exercise).length > 0">
+                <button class="assign-goal-btn" (click)="createGoal(exercise)" *ngIf="!hasGoal(exercise)" [attr.aria-label]="'routines.assign_goal' | translate">
+                  <ion-icon name="trophy"></ion-icon>
+                  <span class="text-red">{{ 'routines.assign_goal' | translate }}</span>
+                </button>
+                <div *ngIf="hasGoal(exercise)" class="goal-header">
+                  <ion-icon name="trophy"></ion-icon>
+                  <span class="text-red">{{ 'exercise.goal' | translate }}</span>
+                </div>
+                <div class="goal-table" *ngIf="hasGoal(exercise)">
+                  <table class="glass-table" aria-label="Goal table">
+                    <thead>
+                      <tr>
+                        <th>{{ 'common.weight' | translate }}</th>
+                        <th></th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr>
+                        <td>
+                          <div class="sf-combo">
+                            <input type="number" inputmode="decimal" [ngModel]="getGoalDisplayValue(exercise)" (ngModelChange)="setGoalWeight(exercise, $event)" (focus)="onGoalFocus(exercise)" (blur)="onGoalBlur(exercise)" min="0" max="1000" step="0.1" class="sf-input" [attr.aria-label]="'routines.goal_weight' | translate" />
+                            <div class="unit-dd">
+                              <button class="unit-dd-btn" (click)="toggleGoalUnitDropdown(exercise)" [attr.aria-expanded]="isGoalUnitDropdownOpen(exercise)">
+                                <span class="label">{{ getGoalUnit(exercise) }}</span>
+                                <ion-icon [name]="isGoalUnitDropdownOpen(exercise) ? 'chevron-up' : 'chevron-down'"></ion-icon>
+                              </button>
+                              <div class="unit-dd-menu" [class.open]="isGoalUnitDropdownOpen(exercise)" [attr.aria-hidden]="!isGoalUnitDropdownOpen(exercise)">
+                                  <button class="unit-dd-item" [class.selected]="isGoalUnitSelected(exercise, 'kg')" [class.just-selected]="isGoalUnitJustSelected(exercise)" (click)="setGoalUnit(exercise, 'kg')">{{ 'common.kg' | translate }}</button>
+                                  <button class="unit-dd-item" [class.selected]="isGoalUnitSelected(exercise, 'lb')" [class.just-selected]="isGoalUnitJustSelected(exercise)" (click)="setGoalUnit(exercise, 'lb')">{{ 'common.lb' | translate }}</button>
+                              </div>
+                            </div>
+                          </div>
+                        </td>
+                        <td>
+                          <button class="exercise-trash-btn" (click)="removeGoal(exercise)" [attr.aria-label]="'routines.delete_goal' | translate"><ion-icon name="trash"></ion-icon></button>
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+              <div class="sets-empty" *ngIf="getSets(exercise).length === 0">
+                <div class="sets-empty-icon"><ion-icon name="swap-vertical"></ion-icon></div>
+                <h4>{{ 'common.no_sets' | translate }}</h4>
+                <p class="sets-empty-sub">{{ 'common.add_first_set' | translate }}</p>
+              </div>
+              <div class="notes-section section-spacing">
+                <label class="text-gray-400 text-xs">{{ 'common.notes' | translate }} ({{ 'common.optional' | translate }})</label>
+                <div class="notes-box">
+                  <textarea [(ngModel)]="exercise.notes" [placeholder]="'home.notes_placeholder' | translate" rows="3" class="notes-textarea"></textarea>
+                </div>
+              </div>
+            </div>
+            <div class="drag-preview" *cdkDragPreview>
+              <div class="accordion-header">
+                <button class="drag-handle" aria-label="Drag handle">
+                  <span class="dot"></span><span class="dot"></span>
+                  <span class="dot"></span><span class="dot"></span>
+                  <span class="dot"></span><span class="dot"></span>
+                </button>
+                <div class="accordion-title">{{ exercise.exerciseName?.trim() ? exercise.exerciseName : ('common.exercise' | translate) }}</div>
+                <div class="accordion-actions"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Empty State -->
+      <div *ngIf="exercises.length === 0" class="content-surface empty-center">
+        <div class="modal-empty-glass">
+          <div class="modal-empty-icon">
+            <ion-icon name="barbell"></ion-icon>
+          </div>
+          <h3>{{ 'routines.no_exercises' | translate }}</h3>
+          <p>{{ 'routines.no_exercises_desc' | translate }}</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<button
+  class="save-fab"
+  aria-label="Save routine"
+  (click)="saveRoutine()">
+  <ion-icon name="save"></ion-icon>
+</button>
+<div class="modal-saving" *ngIf="isSaving">
+  <div class="spinner-wrap">
+    <img src="assets/icon/favicon_transparent.png" alt="logo" class="splash-favicon" />
+  </div>
+</div>

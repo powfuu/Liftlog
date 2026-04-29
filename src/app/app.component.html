@@ -1,0 +1,18 @@
+<ion-app>
+  <ion-toast style="display:none"></ion-toast>
+  <ion-alert style="display:none"></ion-alert>
+  <div #swipeOverlay class="tab-swipe-overlay">
+    <ion-icon name="chevron-back" class="icon-prev"></ion-icon>
+    <ion-icon name="chevron-forward" class="icon-next"></ion-icon>
+  </div>
+  <ion-router-outlet></ion-router-outlet>
+  <app-global-loader></app-global-loader>
+  <div class="keyboard-accessory-bar" [class.visible]="isKeyboardOpen">
+    <div class="input-preview" *ngIf="activeInputValue">
+      <span class="preview-text">{{ activeInputValue }}</span>
+    </div>
+    <button class="keyboard-close-btn" (click)="closeKeyboard()" aria-label="Cerrar teclado">
+      <ion-icon name="chevron-down"></ion-icon>
+    </button>
+  </div>
+</ion-app>

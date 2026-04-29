@@ -1,0 +1,119 @@
+<ion-content [fullscreen]="true">
+  <div class="screen" #screenRef>
+    <app-notch-header
+      [title]="'tracking.title' | translate"
+      [icon]="'barbell'"
+      [items]="[]">
+    </app-notch-header>
+
+    <div class="page" *ngIf="animateEnter">
+      <div class="tracking-hero page-enter">
+        <div class="segment-card segment-card--compact">
+          <ion-segment class="time-tabs time-tabs--tiny" [(ngModel)]="selectedTimeRange" (ionChange)="onTimeRangeChange($event)" mode="ios">
+            <ion-segment-button value="week"><ion-label>{{ 'tracking.week' | translate }}</ion-label></ion-segment-button>
+            <ion-segment-button value="month"><ion-label>{{ 'tracking.month' | translate }}</ion-label></ion-segment-button>
+            <ion-segment-button value="3months"><ion-label>{{ 'tracking.3_months' | translate }}</ion-label></ion-segment-button>
+            <ion-segment-button value="6months"><ion-label>{{ 'tracking.6_months' | translate }}</ion-label></ion-segment-button>
+            <ion-segment-button value="year"><ion-label>{{ 'tracking.year' | translate }}</ion-label></ion-segment-button>
+          </ion-segment>
+        </div>
+      </div>
+
+      <div class="muscle-stats-container glass-card page-enter" style="margin: 0 16px 16px 16px; border-radius: 24px;">
+        <h3 style="margin: 0 0 16px 0; font-size: 16px; font-weight: 600; color: var(--liftlog-text-primary); display: flex; align-items: center; gap: 8px;">
+          <ion-icon name="analytics-outline" style="color: #ef4444; font-size: 18px;"></ion-icon>
+          {{ 'tracking.muscle_dist' | translate }}
+        </h3>
+
+        <div class="stats-content" style="display: flex; align-items: center;">
+            <div class="chart-container" style="position: relative; height: 220px; flex: 1;">
+                <div *ngIf="chartVisible" style="width: 100%; height: 100%;">
+                    <canvas #muscleChartCanvas></canvas>
+                </div>
+            </div>
+            <div class="legend-container" *ngIf="muscleStats.length > 0" style="margin-left: 20px; min-width: 120px; display: flex; flex-direction: column; justify-content: center;">
+                <div *ngFor="let stat of muscleStats" style="display: flex; align-items: center; margin-bottom: 8px;">
+                    <div [style.background-color]="stat.color" [style.box-shadow]="'0 0 8px ' + stat.color + '66'" style="width: 10px; height: 10px; border-radius: 50%; margin-right: 12px;"></div>
+                    <span style="font-size: 13px; color: var(--liftlog-text-secondary); font-family: 'Inter', sans-serif;">{{ stat.displayName || stat.name }}</span>
+                </div>
+            </div>
+        </div>
+      </div>
+
+      <div class="controls" [@sectionEnter]>
+        <div class="control-card">
+          <div class="control-right" style="width:100%">
+            <button
+              id="program-select-trigger"
+              class="select-pill select-pill--full program-card"
+              type="button"
+              (click)="toggleProgramDropdown()"
+              [class.open]="programDropdownOpen"
+              [class.selected]="!!selectedProgram"
+            >
+              <div class="filter-card__left">
+                <div class="icon-circle"><ion-icon name="barbell"></ion-icon></div>
+                <div class="filter-meta" *ngIf="!selectedProgram">
+                  <span>{{ 'common.program' | translate }}</span>
+                  <div class="filter-select">{{ selectedProgram || '-' }}</div>
+                </div>
+                <div class="selected-meta" *ngIf="selectedProgram">
+                  <div class="selected-title">{{ selectedProgram }}</div>
+                  <div class="selected-sub">{{ 'tracking.routines' | translate }}</div>
+                </div>
+              </div>
+              <div class="program-stats-right" *ngIf="selectedProgram">
+                <div class="stat-pill green">
+                  <span>{{ routinesForProgram.length }} {{ 'tracking.routines' | translate }}</span>
+                </div>
+                <div class="stat-pill orange">
+                  <span>{{ totalExercisesCount }} {{ 'common.exercises' | translate }}</span>
+                </div>
+              </div>
+              <ion-icon name="chevron-down" class="chevron-icon"></ion-icon>
+            </button>
+            <div class="dropdown-overlay" *ngIf="programDropdownOpen" (click)="programDropdownOpen=false" @overlayFade></div>
+            <div class="program-dropdown" *ngIf="programDropdownOpen" @dropdownReveal>
+              <button type="button" class="program-option" [class.selected]="selectedProgram===''" (click)="selectProgram('')">{{ '-' }}</button>
+              <button type="button" class="program-option" *ngFor="let p of programs" [class.selected]="selectedProgram===p" (click)="selectProgram(p)">{{ p }}</button>
+            </div>
+          </div>
+        </div>
+        <div class="no-program-pill" *ngIf="!selectedProgram">
+          <ion-icon name="information-circle"></ion-icon>
+          <span>{{ 'tracking.no_program_selected' | translate }}</span>
+        </div>
+      </div>
+
+
+      <div class="metrics-grid" [@gridEnter]>
+
+      <br/>
+        <div class="metric-card routine-card" *ngFor="let r of routinesForProgram; trackBy: trackRoutineById" (click)="onRoutineSelect(r.id)">
+          <div class="metric-icon">
+            <ion-icon name="bar-chart"></ion-icon>
+          </div>
+          <p class="metric-title">{{ r.name }}</p>
+      <h2 class="metric-value">
+        {{ (routineQuickStats[r.id]?.totalVolumeKg || 0) | number:'1.0-0' }}<span class="metric-unit">{{ 'common.kg' | translate }}</span>
+        <span class="metric-label-small">{{ 'tracking.total_volume_lbl' | translate }}</span>
+      </h2>
+          <div class="metric-pill metric-pill--orange">
+            <ion-icon name="barbell"></ion-icon>
+            <span>{{ r.exercises?.length || 0 }} {{ 'common.exercises' | translate }}</span>
+          </div>
+          <div class="metric-pill metric-pill--red metric-pill--date">
+            <ion-icon name="list"></ion-icon>
+            <span>{{ routineQuickStats[r.id]?.totalReps || 0 }} {{ 'tracking.reps' | translate }}</span>
+          </div>
+          <div class="metric-pill metric-pill--red metric-pill--date">
+            <ion-icon name="layers"></ion-icon>
+            <span>{{ routineQuickStats[r.id]?.totalSets || 0 }} {{ 'common.sets' | translate }}</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Routine Stats Modal moved to ModalController full-screen -->
+    </div>
+  </div>
+</ion-content>

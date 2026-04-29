@@ -1,0 +1,9 @@
+<div class="loader-overlay" [class.open]="(state$|async)?.active">
+  <div class="loader-backdrop"></div>
+  <div class="loader-content">
+    <div class="spinner">
+      <img src="assets/icon/favicon_transparent.png" alt="logo" class="spinner-logo" />
+    </div>
+    <div class="message" *ngIf="(state$|async)?.message as msg">{{ msg }}</div>
+  </div>
+</div>

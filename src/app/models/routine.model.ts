@@ -1,0 +1,74 @@
+export interface Routine {
+  id: string;
+  name: string;
+  programName?: string;
+  description?: string;
+  exercises: RoutineExercise[];
+  frequency: 'daily' | 'weekly' | 'custom';
+  days?: string[];
+  isActive: boolean;
+  createdAt: Date;
+  updatedAt: Date;
+  code?: string;
+  order?: number;
+}
+
+export interface RoutineExercise {
+  exerciseId: string;
+  exerciseName: string;
+  weight: number;
+  weightUnit: 'lb' | 'kg';
+  targetSets: number;
+  targetReps: number;
+  reserveReps?: number;
+  notes?: string;
+  order: number;
+  completed?: boolean;
+}
+
+export interface UserPreferences {
+  weightUnit: 'lb' | 'kg';
+  theme: 'dark' | 'light';
+  language: 'en' | 'es' | 'de' | 'ko';
+  dateFormat: string;
+  notificationsEnabled: boolean;
+  userName?: string;
+  userEmail?: string;
+  dateOfBirth?: Date;
+  experienceLevel?: 'beginner' | 'intermediate' | 'advanced';
+}
+
+export interface ProgressData {
+  exerciseId: string;
+  exerciseName: string;
+  timeRange: DateRange;
+  dataPoints: ProgressPoint[];
+  personalRecord: PersonalRecord;
+  volumeTrend: VolumeTrend;
+}
+
+export interface ProgressPoint {
+  date: Date;
+  maxWeight: number;
+  totalVolume: number;
+  setCount: number;
+}
+
+export interface PersonalRecord {
+  weight: number;
+  unit: 'lb' | 'kg';
+  date: Date;
+  exerciseName: string;
+}
+
+export interface VolumeTrend {
+  averageVolume: number;
+  trendDirection: 'up' | 'down' | 'stable';
+  percentageChange: number;
+}
+
+export interface DateRange {
+  startDate: Date;
+  endDate: Date;
+  label: string;
+}

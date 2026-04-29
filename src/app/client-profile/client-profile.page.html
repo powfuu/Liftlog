@@ -1,0 +1,631 @@
+<div class="client-profile-container safe-area-top">
+  <div class="client-notch">
+  <app-notch-header
+    *ngIf="!loading"
+    [title]="'client.title' | translate"
+    [leadingActionIcon]="'arrow-back'"
+    (leadingAction)="goBack()">
+  </app-notch-header>
+  </div>
+
+<ion-content>
+  <!-- Loading State - Full Screen Spinner -->
+  <div *ngIf="loading" class="loading-overlay">
+    <div class="spinner-wrapper">
+      <div class="ring"></div>
+      <img src="/assets/icon/favicon_transparent.png" class="spinner-logo" alt="Logo">
+    </div>
+    <p>{{ 'client.loading_profile' | translate }}</p>
+  </div>
+
+  <div *ngIf="!loading && client" class="profile-container">
+    <!-- Client Info Section with Glassmorphism -->
+    <div class="client-hero">
+      <div class="client-avatar-wrapper">
+        <img *ngIf="client.avatar_url; else defaultAvatar"
+             [src]="client.avatar_url"
+             [alt]="client.name"
+             referrerpolicy="no-referrer"
+             crossorigin="anonymous"
+             (error)="client.avatar_url = null"
+             class="avatar-image" />
+        <ng-template #defaultAvatar>
+          <div class="default-avatar-bg">
+            <ion-icon name="person" class="avatar-icon"></ion-icon>
+          </div>
+        </ng-template>
+      </div>
+
+      <div class="client-details">
+        <div class="name-row">
+          <h1 class="client-name">{{client.name}}</h1>
+          <div class="id-tag">{{ 'coaching.id_label' | translate }} {{client.user_id_7digit || client.client_id.slice(0,6)}}</div>
+        </div>
+        <p class="client-assigned">
+          {{ 'coaching.assigned_on' | translate }} {{client.assigned_at | localeDate:'short'}}
+        </p>
+      </div>
+    </div>
+
+    <!-- Modern Segmented Tab Selector -->
+    <div class="modern-tabs-wrapper">
+      <div class="modern-tabs">
+        <button class="tab-item" [class.active]="activeTab === 'home'" (click)="setActiveTab('home')">
+          <span class="tab-label">{{ 'tabs.home' | translate }}</span>
+        </button>
+        <button class="tab-item" [class.active]="activeTab === 'programs'" (click)="setActiveTab('programs')">
+          <span class="tab-label">{{ 'tabs.programs' | translate }}</span>
+        </button>
+        <button class="tab-item" [class.active]="activeTab === 'weight'" (click)="setActiveTab('weight')">
+          <span class="tab-label">{{ 'common.weight' | translate }}</span>
+        </button>
+        <button class="tab-item" [class.active]="activeTab === 'tracking'" (click)="setActiveTab('tracking')">
+          <span class="tab-label">{{ 'tabs.tracking' | translate }}</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Programs Tab -->
+    <div *ngIf="activeTab === 'programs'" class="tab-content enter-fade-up">
+      <div class="programs-container">
+        <div *ngIf="!editingMode" class="programs-list stagger-load">
+          <div class="programs-actions">
+            <button class="new-program-btn" (click)="openCreateProgram()">
+              <ion-icon name="add"></ion-icon>
+              <span>{{ 'programs.create_btn' | translate }}</span>
+            </button>
+          </div>
+
+          <div *ngFor="let program of programs" class="glass-card glass-card-program program-card glass-item">
+
+            <!-- Accordion Header -->
+            <button type="button" class="program-header-accordion" [class.expanded]="isProgramExpanded(program.id)" (click)="toggleProgram(program.id)">
+              <div class="program-info">
+                <div class="program-title-row">
+                  <span class="program-title">{{ program.name }}</span>
+                  <span class="status-badge" [class.inactive]="!program.isActive">
+                    {{ (program.isActive ? 'common.active' : 'common.inactive') | translate }}
+                  </span>
+                </div>
+                <div class="program-subtitle">
+                  <span class="meta-item">{{ 'home.routines' | translate }} <span class="meta-val">{{ getRoutineCount(program.id) }}</span></span>
+                  •
+                  <span class="meta-item">{{ 'home.exercises' | translate }} <span class="meta-val">{{ getExerciseCount(program.id) }}</span></span>
+                  <div class="code-chip small" [title]="('programs.id_label' | translate)" (click)="$event.stopPropagation(); copyProgramCode(program.code)">
+                    <span>{{ program.code || '—' }}</span>
+                    <div class="copy-btn" (click)="$event.stopPropagation(); copyProgramCode(program.code)" role="button" tabindex="0">
+                      <ion-icon name="copy-outline"></ion-icon>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="program-actions-right">
+                <div class="action-btn" (click)="deleteProgram(program); $event.stopPropagation()" role="button" tabindex="0">
+                  <ion-icon name="trash-outline"></ion-icon>
+                </div>
+                <div class="accordion-toggle" role="button" tabindex="0">
+                   <ion-icon name="chevron-down" class="accordion-chevron" [class.expanded]="isProgramExpanded(program.id)"></ion-icon>
+                </div>
+              </div>
+            </button>
+
+            <!-- Expanded Routines Content -->
+            <div class="program-details-content" *ngIf="isProgramExpanded(program.id)">
+               <!-- Program Description Accordion -->
+               <div *ngIf="program.description" class="prog-desc-accordion">
+                 <button class="pda-header" (click)="toggleProgramDesc(program.id); $event.stopPropagation()">
+                   <ion-icon name="information-circle"></ion-icon>
+                   <span class="pda-title">{{ 'routines.about' | translate }}</span>
+                   <ion-icon [name]="isProgramDescExpanded(program.id) ? 'chevron-up' : 'chevron-down'" class="pda-chevron"></ion-icon>
+                 </button>
+                 <div class="pda-body" [class.open]="isProgramDescExpanded(program.id)">
+                   <p class="pda-text">{{ program.description }}</p>
+                 </div>
+               </div>
+
+               <div class="routine-list" style="border: none; margin: 0; padding: 16px;">
+
+                 <div class="routine-list-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                   <div class="routine-section-title" style="margin-bottom: 0;">{{ 'home.routines' | translate }}</div>
+                   <button class="header-add-btn" (click)="createRoutine(program)">
+                      <ion-icon name="add"></ion-icon>
+                      <span>{{ 'routines.new_routine' | translate }}</span>
+                   </button>
+                 </div>
+
+                  <div cdkDropList [cdkDropListData]="getRoutinesByProgram(program.id)" (cdkDropListDropped)="dropRoutine($event, program.id)">
+                    <div class="glass-card routine-card" *ngFor="let r of getRoutinesByProgram(program.id)" cdkDrag (click)="editRoutine(r)" style="margin-bottom: 12px;">
+                      <!-- Routine Header -->
+                      <div class="card-header">
+                        <div class="drag-strip" cdkDragHandle></div>
+                        <button class="drag-handle" cdkDragHandle (click)="$event.stopPropagation()">
+                          <span class="dot"></span><span class="dot"></span>
+                          <span class="dot"></span><span class="dot"></span>
+                          <span class="dot"></span><span class="dot"></span>
+                        </button>
+                        <div class="header-text">
+                          <div class="card-title">{{ r.name }}</div>
+                          <div class="routine-desc routine-desc--ellipsis" *ngIf="r.description" [title]="r.description">{{ r.description }}</div>
+                        </div>
+                        <div class="header-actions">
+                          <button class="action-button" (click)="$event.stopPropagation(); editRoutine(r)">
+                            <ion-icon name="chevron-forward"></ion-icon>
+                          </button>
+                          <button type="button" class="action-button danger" (click)="deleteRoutine(r); $event.stopPropagation()">
+                            <ion-icon name="trash"></ion-icon>
+                          </button>
+                        </div>
+                      </div>
+
+                      <!-- Exercise Preview -->
+                      <div class="card-chips">
+                        <div *ngFor="let exercise of (r.exercises || []).slice(0, 3)" class="glass-chip">
+                          <span>{{ exercise.exerciseName }}</span>
+                        </div>
+                        <div *ngIf="(r.exercises || []).length > 3" class="glass-chip more">
+                          <span>+{{ (r.exercises || []).length - 3 }}</span>
+                        </div>
+                      </div>
+
+                      <div style="display: flex; justify-content: flex-end; padding-right: 12px; margin-top: 4px; margin-bottom: 4px;">
+                        <div class="code-chip small" [title]="('routines.id_label' | translate)" (click)="$event.stopPropagation(); copyRoutineCode(r.code)" style="margin:0;">
+                          <span>{{ r.code || '—' }}</span>
+                          <button class="copy-btn" (click)="$event.stopPropagation(); copyRoutineCode(r.code)"><ion-icon name="copy-outline"></ion-icon></button>
+                        </div>
+                      </div>
+
+                      <!-- Stats -->
+                      <div class="card-stats">
+                        <div class="stat">
+                          <ion-icon name="barbell"></ion-icon>
+                          <span class="stat-text">{{ getTotalExercises(r) }}</span>
+                        </div>
+                        <div class="stat">
+                        <ion-icon name="calendar"></ion-icon>
+                        <span class="stat-text">{{ r.createdAt | date:'dd/MM/yyyy' }}</span>
+                      </div>
+                        <div class="stat">
+                          <ion-icon name="refresh"></ion-icon>
+                          <span class="stat-text">{{ getScheduleLabel(r) }}</span>
+                        </div>
+                      </div>
+
+                      <div *cdkDragPlaceholder class="drag-placeholder"></div>
+                    </div>
+                  </div>
+
+                  <div *ngIf="!hasRoutinesForProgram(program.id)" class="empty-glass small" style="padding: 10px; margin-bottom: 12px;">
+                     <p style="margin: 0; font-size: 13px; color: var(--liftlog-text-secondary);">{{ 'programs.no_routines' | translate }}</p>
+                   </div>
+                </div>
+             </div>
+
+          </div>
+
+          <div *ngIf="programs.length === 0" class="empty-hero empty-anim enter-fade-up">
+            <div class="hero-glow"></div>
+            <div class="hero-icon"><ion-icon name="albums"></ion-icon></div>
+            <h2>{{ 'client.no_programs_assigned' | translate }}</h2>
+            <p>{{ 'client.no_programs_desc' | translate }}</p>
+          </div>
+        </div>
+
+        <!-- Editing Mode -->
+        <div *ngIf="editingMode && editingProgram" class="editing-container glass-card">
+          <div class="editing-header">
+            <h3 class="program-name">{{ 'programs.edit_modal_title' | translate }}</h3>
+            <button class="icon-btn danger" (click)="cancelEdit()">
+              <ion-icon name="close-outline"></ion-icon>
+            </button>
+          </div>
+
+          <div class="editing-form">
+            <div class="form-group">
+              <label>{{ 'programs.name_label' | translate }}</label>
+              <input type="text" [(ngModel)]="editingProgram.name" class="glass-input" />
+            </div>
+
+            <div class="form-group">
+              <label>{{ 'programs.desc_label' | translate }}</label>
+              <textarea [(ngModel)]="editingProgram.description" class="glass-input" rows="3"></textarea>
+            </div>
+
+            <div class="form-group">
+              <label>{{ 'client.duration_label' | translate }}</label>
+              <input type="text" [(ngModel)]="editingProgram.duration" class="glass-input" [placeholder]="'client.duration_placeholder' | translate" />
+            </div>
+
+            <div class="form-group checkbox-group">
+              <input type="checkbox" id="isActive" [(ngModel)]="editingProgram.isActive" />
+              <label for="isActive">{{ 'common.program_enabled_label' | translate }}</label>
+            </div>
+          </div>
+
+          <div class="editing-actions">
+            <button class="glass-button primary" (click)="saveProgram()">
+              <ion-icon name="save-outline"></ion-icon>
+              {{ 'common.save_changes' | translate }}
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Home Tab -->
+    <div class="today-routines" *ngIf="activeTab === 'home'">
+
+      <!-- Summary Card / Header Card -->
+      <div class="glass-summary-card" *ngIf="routinesToday.length > 0">
+         <h3>{{ 'client.day_data' | translate }}</h3>
+         <div class="summary-row">
+            <span class="label">{{ 'common.date' | translate }}</span>
+            <span class="value">{{ today | date:'mediumDate' }}</span>
+         </div>
+         <div class="summary-row">
+            <span class="label">{{ 'common.status' | translate }}</span>
+            <span class="value" style="color: #34d399;">{{ 'common.in_progress' | translate }}</span>
+         </div>
+         <div class="summary-row">
+            <span class="label">{{ 'home.exercises' | translate }}</span>
+            <span class="value">{{ getTotalExercisesToday() }}</span>
+         </div>
+      </div>
+
+      <div class="section-header-row">
+        <div class="header-left">
+          <ion-icon name="calendar-outline" class="section-icon"></ion-icon>
+          <h4>{{ 'client.routines_today' | translate }}</h4>
+        </div>
+        <ion-button fill="clear" size="small" id="date-trigger" class="date-selector-btn">
+          <ion-icon slot="start" name="calendar-outline"></ion-icon>
+          {{ today | date:'dd/MM/yyyy' }}
+        </ion-button>
+      </div>
+
+      <ion-modal trigger="date-trigger" #datePopover class="date-modal-centered">
+        <ng-template>
+          <div class="custom-calendar" [style.transform]="swipeTransform" [style.transition]="swipeTransition" [style.opacity]="swipeOpacity" (touchstart)="onTouchStart($event)" (touchmove)="onTouchMove($event)" (touchend)="onTouchEnd($event)">
+            <div class="cal-header">
+              <button class="nav-btn" (click)="prevMonth()"><ion-icon name="chevron-back"></ion-icon></button>
+              <div class="cal-title text-gradient-primary">{{ calendarMonthLabel }} {{ calendarYear }}</div>
+              <button class="nav-btn" (click)="nextMonth()"><ion-icon name="chevron-forward"></ion-icon></button>
+            </div>
+            <div class="cal-weekdays">
+              <div class="wd" *ngFor="let wd of weekdayLabels">{{ wd }}</div>
+            </div>
+            <div class="cal-grid" [class.animate]="shouldAnimateDays">
+              <button class="cal-day" *ngFor="let d of calendarDays; let i = index"
+                [class.will-animate]="shouldAnimateDays"
+                [class.outside]="d.getMonth() !== calendarBase.getMonth()"
+                [class.today]="isToday(d)"
+                [class.selected]="isSelected(d)"
+                [class.trained]="isTrainedDay(d) && !isSelected(d)"
+                [class.untrained]="isPastDay(d) && !isTrainedDay(d) && !isSelected(d)"
+                [class.rest]="isRestDay(d) && !isSelected(d)"
+                [disabled]="isPastDay(d) && !isTrainedDay(d)"
+                (click)="selectDate(d)"
+                [style.animationDelay]="shouldAnimateDays ? (i * 30) + 'ms' : null">
+                {{ d.getDate() }}
+              </button>
+            </div>
+            <div class="cal-legend">
+              <div class="legend-item"><span class="legend-dot selected"></span><span>{{ 'common.selected' | translate }}</span></div>
+              <div class="legend-item"><span class="legend-dot trained"></span><span>{{ 'common.trained' | translate }}</span></div>
+              <div class="legend-item"><span class="legend-dot untrained"></span><span>{{ 'common.untrained' | translate }}</span></div>
+              <div class="legend-item"><span class="legend-dot rest"></span><span>{{ 'common.rest' | translate }}</span></div>
+            </div>
+            <div class="cal-footer">
+              <button class="footer-btn cancel" (click)="closeDatePicker()">{{ 'common.cancel' | translate }}</button>
+              <button class="footer-btn done" (click)="closeDatePicker()">{{ 'common.done' | translate }}</button>
+            </div>
+          </div>
+        </ng-template>
+      </ion-modal>
+
+      <div class="routines-list">
+        <ng-container *ngIf="routinesToday.length > 0; else noRoutines">
+          <div class="glass-card routine-card" *ngFor="let routine of routinesToday; trackBy: trackRoutineById" (click)="openRoutineDetail(routine)">
+            <div class="card-header">
+              <div class="header-text">
+                <div class="header-top">
+                  <div class="card-title">{{ routine.name }}</div>
+                  <span class="routine-tag">{{ routine.programName || ('common.program' | translate) }}</span>
+                </div>
+              </div>
+              <div class="header-actions">
+                 <ion-icon *ngIf="routine.finished" name="checkmark-circle" color="success" style="font-size: 20px;"></ion-icon>
+              </div>
+            </div>
+            <div class="card-chips">
+              <div *ngFor="let ex of routine.exercises.slice(0,3)" class="glass-chip">
+                <span>{{ ex.exerciseName }}</span>
+              </div>
+              <div *ngIf="routine.exercises.length > 3" class="glass-chip more">
+                <span>+{{ routine.exercises.length - 3 }}</span>
+              </div>
+            </div>
+            <div class="card-stats">
+              <div class="stat">
+                <ion-icon name="barbell"></ion-icon>
+                <span>{{ routine.exercises.length }}</span>
+              </div>
+              <div class="stat">
+                <ion-icon name="calendar"></ion-icon>
+                <span>{{ today | date:'dd/MM' }}</span>
+              </div>
+              <div class="stat">
+                <ion-icon name="list"></ion-icon>
+                <span>{{ getTotalSets(routine) }} {{ 'common.sets' | translate }}</span>
+              </div>
+            </div>
+          </div>
+        </ng-container>
+
+        <ng-template #noRoutines>
+          <div class="empty-hero empty-anim enter-fade-up">
+            <div class="hero-glow"></div>
+            <div class="hero-icon"><ion-icon name="list"></ion-icon></div>
+            <h2>{{ 'client.no_routines_today' | translate }}</h2>
+            <p>{{ 'client.no_routines_today_desc' | translate }}</p>
+          </div>
+        </ng-template>
+      </div>
+    </div>
+
+    <!-- Weight Tab -->
+    <div *ngIf="activeTab === 'weight'" class="tab-content enter-fade-up weight-page-wrapper">
+
+      <div class="controls page-enter" style="margin-top: 0; margin-bottom: 16px;">
+        <div class="segment-card segment-card--compact page-enter">
+          <ion-segment class="time-tabs time-tabs--small" [(ngModel)]="selectedUnit" (ionChange)="updateChart(); computeWeightChange()" mode="ios">
+            <ion-segment-button value="kg"><ion-label>{{ 'common.kg' | translate }}</ion-label></ion-segment-button>
+            <ion-segment-button value="lb"><ion-label>{{ 'common.lb' | translate }}</ion-label></ion-segment-button>
+          </ion-segment>
+        </div>
+      </div>
+
+      <div class="metrics-grid stagger-load">
+        <div class="metric-card metric-card--redbg metric-card--current">
+          <div class="metric-icon metric-icon--red"><ion-icon name="scale"></ion-icon></div>
+          <p class="metric-title"><ion-icon name="body"></ion-icon>{{ 'weight.current_weight' | translate }}</p>
+          <h2 class="metric-value">{{ (currentWeight?.weight || 0) | number:'1.0-1' }}<span class="metric-unit">{{ selectedUnit | uppercase }}</span></h2>
+        </div>
+        <div class="metric-card metric-card">
+          <div class="metric-icon metric-icon--red"><ion-icon name="add-circle"></ion-icon></div>
+          <p class="metric-title"><ion-icon name="add-circle"></ion-icon>{{ 'weight.records' | translate }}</p>
+          <h2 class="metric-value">{{ weightHistory.length }}</h2>
+        </div>
+      </div>
+
+      <div class="secondary-grid" style="margin-bottom: 16px; gap: 8px; display: none;">
+        <!-- Disabled weight input as per requirements -->
+      </div>
+
+      <div class="secondary-grid" style="margin-top: 10px; margin-bottom: 20px;">
+        <div class="weight-chart-card">
+          <h3 class="chart-subtitle">{{ 'weight.trend' | translate }}</h3>
+          <div class="metric-pill" [class.metric-pill--green]="weightChange < 0" [class.metric-pill--red]="weightChange > 0" [class.metric-pill--gray]="weightChange === 0" *ngIf="weightHistory.length > 0">
+            <ion-icon [name]="weightChange > 0 ? 'trending-up' : (weightChange < 0 ? 'trending-down' : 'remove-outline')"></ion-icon>
+            <span>{{ 'weight.change_30d' | translate }} {{ weightChange | number:'1.0-1' }} {{ selectedUnit | uppercase }}</span>
+          </div>
+          <div class="weight-trend-chart">
+            <canvas #clientWeightChart></canvas>
+          </div>
+        </div>
+      </div>
+
+      <div class="secondary-grid" style="margin-top: 0;">
+        <div class="chart-card transparent-card">
+          <h3 class="chart-subtitle"><ion-icon name="list"></ion-icon>{{ 'weight.history' | translate }}</h3>
+          <div style="width: 100%;">
+            <div class="bento-card transparent-card page-enter weight-table-scroll" style="padding:0; max-height: 500px; overflow-y: auto;">
+              <table class="weight-table">
+                <thead>
+                  <tr>
+                    <th>{{ 'common.weight' | translate }}</th>
+                    <th style="text-align:right;">{{ 'weight.date' | translate }}</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr *ngFor="let l of weightHistory">
+                    <td class="cell-weight"><span class="weight-value">{{ convert(l.weight, l.unit, selectedUnit) | number:'1.0-1' }}</span> <span class="weight-unit">{{ selectedUnit | uppercase }}</span></td>
+                    <td class="cell-date">
+                      <div class="date-wrapper">
+                        {{ l.date | localeDate:'medium' }}
+                      </div>
+                    </td>
+                  </tr>
+                  <tr *ngIf="weightHistory.length === 0">
+                    <td colspan="2" class="cell-empty">{{ 'weight.no_records' | translate }}</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Tracking Tab -->
+    <div *ngIf="activeTab === 'tracking'" class="tab-content enter-fade-up tracking-wrapper">
+      <!-- Tracking UI -->
+      <div class="muscle-stats-container glass-card" style="margin: 0 16px 16px 16px; border-radius: 24px; background: transparent; border: 0px; box-shadow: none;">
+        <h3 style="margin: 0 0 16px 0; font-size: 16px; font-weight: 600; color: var(--liftlog-text-primary); display: flex; align-items: center; gap: 8px;">
+          <ion-icon name="analytics-outline" style="color: #ef4444; font-size: 18px;"></ion-icon>
+          {{ 'tracking.muscle_dist' | translate }}
+        </h3>
+
+        <div class="stats-content" style="display: flex; align-items: center;">
+            <div class="chart-container" style="position: relative; height: 220px; flex: 1;">
+                <canvas #muscleChartCanvas></canvas>
+            </div>
+            <div class="legend-container" *ngIf="muscleStats.length > 0" style="margin-left: 20px; min-width: 120px; display: flex; flex-direction: column; justify-content: center;">
+                <div *ngFor="let stat of muscleStats" style="display: flex; align-items: center; margin-bottom: 8px;">
+                    <div [style.background-color]="stat.color" [style.box-shadow]="'0 0 8px ' + stat.color + '66'" style="width: 10px; height: 10px; border-radius: 50%; margin-right: 12px;"></div>
+                    <span style="font-size: 13px; color: var(--liftlog-text-secondary); font-family: 'Inter', sans-serif;">{{ stat.displayName || stat.name }}</span>
+                </div>
+            </div>
+        </div>
+      </div>
+
+      <div class="tracking-hero">
+          <div class="segment-card segment-card--compact">
+              <ion-segment class="time-tabs time-tabs--tiny" [(ngModel)]="trackingTimeRange" (ionChange)="onTimeRangeChange($event)" mode="ios">
+                  <ion-segment-button value="week"><ion-label>{{ 'tracking.week' | translate }}</ion-label></ion-segment-button>
+                  <ion-segment-button value="month"><ion-label>{{ 'tracking.month' | translate }}</ion-label></ion-segment-button>
+                  <ion-segment-button value="3months"><ion-label>{{ 'tracking.3_months' | translate }}</ion-label></ion-segment-button>
+                  <ion-segment-button value="6months"><ion-label>{{ 'tracking.6_months' | translate }}</ion-label></ion-segment-button>
+                  <ion-segment-button value="year"><ion-label>{{ 'tracking.year' | translate }}</ion-label></ion-segment-button>
+              </ion-segment>
+          </div>
+      </div>
+
+      <div class="controls" [@sectionEnter]>
+          <div class="control-card">
+              <div class="control-right" style="width:100%">
+                  <button id="tracking-program-select" class="select-pill select-pill--full tracking-select-card" type="button"
+                      (click)="toggleProgramDropdown()" [class.open]="trackingProgramDropdownOpen" [class.selected]="!!trackingSelectedProgram">
+                      <div class="filter-card__left">
+                          <div class="icon-circle"><ion-icon name="barbell"></ion-icon></div>
+                          <div class="filter-meta" *ngIf="!trackingSelectedProgram">
+                              <span>{{ 'common.program' | translate }}</span>
+                              <div class="filter-select">{{ trackingSelectedProgram || '-' }}</div>
+                          </div>
+                          <div class="selected-meta" *ngIf="trackingSelectedProgram">
+                              <div class="selected-title">{{ trackingSelectedProgram }}</div>
+                              <div class="selected-sub">{{ 'tracking.routines' | translate }}</div>
+                          </div>
+                      </div>
+                      <div class="program-stats-right" *ngIf="trackingSelectedProgram">
+                          <div class="stat-pill green">
+                              <span>{{ trackingRoutinesForProgram.length }} {{ 'tracking.routines' | translate }}</span>
+                          </div>
+                          <div class="stat-pill orange">
+                              <span>{{ trackingTotalExercisesCount }} {{ 'common.exercises' | translate }}</span>
+                          </div>
+                      </div>
+                      <ion-icon name="chevron-down" class="chevron-icon"></ion-icon>
+                  </button>
+                  <div class="dropdown-overlay" *ngIf="trackingProgramDropdownOpen" (click)="trackingProgramDropdownOpen=false" @overlayFade></div>
+                  <div class="program-dropdown" *ngIf="trackingProgramDropdownOpen" @dropdownReveal>
+                      <button type="button" class="program-option" [class.selected]="trackingSelectedProgram===''" (click)="selectProgram('')">{{ '-' }}</button>
+                      <button type="button" class="program-option" *ngFor="let p of trackingPrograms" [class.selected]="trackingSelectedProgram===p" (click)="selectProgram(p)">{{ p }}</button>
+                  </div>
+              </div>
+          </div>
+          <div class="no-program-pill" *ngIf="!trackingSelectedProgram">
+              <ion-icon name="information-circle"></ion-icon>
+              <span>{{ 'tracking.no_program_selected' | translate }}</span>
+          </div>
+      </div>
+
+      <div class="metrics-grid stagger-load" [@gridEnter]>
+          <div class="metric-card routine-card" *ngFor="let r of trackingRoutinesForProgram; trackBy: trackRoutineById" (click)="onRoutineSelect(r.id)">
+              <div class="metric-icon">
+                  <ion-icon name="bar-chart"></ion-icon>
+              </div>
+              <p class="metric-title">{{ r.name }}</p>
+              <h2 class="metric-value">
+                  {{ (trackingRoutineQuickStats[r.id]?.totalVolumeKg || 0) | number:'1.0-0' }}<span class="metric-unit">{{ 'common.kg' | translate }}</span>
+                  <span class="metric-label-small">{{ 'tracking.total_volume_lbl' | translate }}</span>
+              </h2>
+              <div class="pills-container">
+                  <div class="metric-pill metric-pill--orange">
+                      <ion-icon name="barbell"></ion-icon>
+                      <span>{{ r.exercises?.length || 0 }} {{ 'common.exercises' | translate }}</span>
+                  </div>
+                  <div class="metric-pill metric-pill--red metric-pill--date">
+                      <ion-icon name="list"></ion-icon>
+                      <span>{{ trackingRoutineQuickStats[r.id]?.totalReps || 0 }} {{ 'tracking.reps' | translate }}</span>
+                  </div>
+                  <div class="metric-pill metric-pill--red metric-pill--date">
+                      <ion-icon name="layers"></ion-icon>
+                      <span>{{ trackingRoutineQuickStats[r.id]?.totalSets || 0 }} {{ 'common.sets' | translate }}</span>
+                  </div>
+              </div>
+          </div>
+      </div>
+    </div>
+  </div>
+  <ion-modal [isOpen]="showPreview" class="preview-modal" (didDismiss)="closePreview()" initialBreakpoint="0.7" [breakpoints]="[0, 0.7, 1]" backdropDismiss="true" handle="true">
+    <ng-template>
+      <div class="preview-container">
+        <div class="preview-hero">
+          <div class="preview-title min-w-0">
+            <ion-icon name="list" class="preview-icon"></ion-icon>
+            <span class="preview-title-text ellipsis">{{ previewRoutine?.name }}</span>
+          </div>
+        </div>
+
+        <div class="routine-description-glass" *ngIf="previewRoutine?.description">
+           {{ previewRoutine?.description }}
+        </div>
+
+        <div class="preview-body">
+          <div class="accordion-list">
+            <div *ngFor="let exercise of previewExercises" class="exercise-item glass-item">
+              <button type="button" class="accordion-header" [class.border-b]="isPreviewExpanded(exercise.exerciseId)" (click)="togglePreviewExercise(exercise.exerciseId)">
+                <div class="accordion-text">
+                  <div class="accordion-title">{{ exercise.exerciseName }}</div>
+                  <div class="accordion-meta">
+                    <span class="subtitle-label">{{ 'common.sets' | translate }}</span>
+                    <span class="subtitle-number">{{ getPreviewSets(exercise).length }}</span>
+                    •
+                    <span class="subtitle-label">{{ 'common.reps' | translate }}</span>
+                    <span class="subtitle-number">{{ getRepsSummary(exercise) }}</span>
+                  </div>
+                </div>
+                <div class="accordion-actions">
+                  <div class="accordion-toggle">
+                    <ion-icon name="chevron-down" class="accordion-chevron" [class.expanded]="isPreviewExpanded(exercise.exerciseId)"></ion-icon>
+                  </div>
+                </div>
+              </button>
+
+              <div class="accordion-details" *ngIf="isPreviewExpanded(exercise.exerciseId)" [class.expanded]="true">
+                <div class="exercise-desc-glass" *ngIf="exercise.exerciseDescription">
+                  <ion-icon name="information-circle-outline"></ion-icon>
+                  <span>{{ exercise.exerciseDescription }}</span>
+                </div>
+
+                <div class="sets-table" *ngIf="getPreviewSets(exercise).length > 0">
+                  <table class="glass-table">
+                    <thead>
+                      <tr>
+                        <th>{{ 'exercise.weight' | translate }}</th>
+                        <th>{{ 'exercise.reps' | translate }}</th>
+                        <th>{{ 'common.rir' | translate }}</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr *ngFor="let set of getPreviewSets(exercise)">
+                        <td>
+                           {{ set.weight }}<span class="unit-red">{{ set.weight_unit }}</span>
+                        </td>
+                        <td>{{ set.reps }}</td>
+                        <td>{{ set.rir || '-' }}</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+
+                <div class="exercise-goal-glass" *ngIf="exercise.goalWeight">
+                  <div class="goal-header">
+                    <ion-icon name="trophy"></ion-icon> <span>{{ 'exercise.goal' | translate }}: {{ exercise.goalWeight }} {{ exercise.goalUnit }}</span>
+                  </div>
+                </div>
+
+                <div class="pr-notes-container" *ngIf="exercise.notes">
+                  <span>{{ exercise.notes }}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </ng-template>
+  </ion-modal>
+</ion-content>
+</div>

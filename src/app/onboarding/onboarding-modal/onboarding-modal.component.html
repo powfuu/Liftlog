@@ -1,0 +1,298 @@
+<div class="onboard-container" [class]="'animation-' + animationState">
+  <div class="initial-splash" *ngIf="showSplash">
+    <div class="splash-content">
+      <div class="spinner-wrap">
+        <div class="ring"></div>
+      <img src="assets/icon/favicon_transparent.png" alt="Lift Builder" class="splash-favicon" />
+      </div>
+    </div>
+  </div>
+  <div class="bg-decor">
+    <div class="aurora a1"></div>
+    <div class="aurora a2"></div>
+    <div class="rays">
+      <span></span><span></span><span></span>
+    </div>
+  </div>
+  <div class="onboard-header">
+    <div class="notch">
+      <img src="assets/icon/favicon_transparent.png" alt="Lift Builder" class="favicon" />
+    </div>
+  </div>
+
+  <div class="onboard-body">
+    <div class="slides-viewport" #viewport (scroll)="onScroll()">
+      <div class="slides-track">
+        <section class="slide" [class.active]="step===0">
+          <img class="bg-photo pos-center" [src]="imgLeft" alt="fitness" loading="eager" fetchpriority="high" decoding="sync" [attr.referrerpolicy]="'no-referrer'" [attr.crossorigin]="'anonymous'" />
+          <div class="tint-red"></div>
+          <div class="top-gradient"></div>
+          <div class="bottom-gradient"></div>
+          <div class="vignette"></div>
+          <div class="vignette-left"></div>
+          <div class="vignette-right"></div>
+          <div class="content">
+            <div class="brand-mark"><span class="lift">{{ 'onboarding.brand_lift' | translate }}</span><span class="log">{{ 'onboarding.brand_builder' | translate }}</span></div>
+            <div class="subtitle" [innerHTML]="formatSubtitle('onboarding.subtitle' | translate)"></div>
+            <div style="display:flex;justify-content:center;margin-top:12px" *ngIf="!isAuthenticated"></div>
+          <div class="intro-grid">
+            <div class="intro-section intro-01">
+              <div class="intro-row">
+                <div class="intro-svg organize-svg">
+                  <svg viewBox="0 0 220 140" preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg">
+                    <rect x="12" y="22" width="196" height="114" rx="12" fill="rgba(255,255,255,0.06)" stroke="#dc2626"/>
+                    <rect x="12" y="24" width="196" height="16" rx="10" fill="#dc2626"/>
+
+                    <g class="grid-rects">
+                      <!-- Row 1 -->
+                      <rect x="16" y="46" width="20" height="16" fill="rgba(255,255,255,0.18)" stroke="rgba(239,68,68,0.35)" />
+                      <rect x="42" y="46" width="20" height="16" fill="rgba(255,255,255,0.18)" stroke="rgba(239,68,68,0.35)" />
+                      <rect x="68" y="46" width="20" height="16" fill="rgba(255,255,255,0.18)" stroke="rgba(239,68,68,0.35)" />
+                      <rect x="94" y="46" width="20" height="16" fill="rgba(255,255,255,0.18)" stroke="rgba(239,68,68,0.35)" />
+                      <rect x="120" y="46" width="20" height="16" fill="rgba(255,255,255,0.18)" stroke="rgba(239,68,68,0.35)" />
+                      <rect x="146" y="46" width="20" height="16" fill="rgba(255,255,255,0.18)" stroke="rgba(239,68,68,0.35)" />
+                      <rect x="172" y="46" width="20" height="16" fill="rgba(255,255,255,0.18)" stroke="rgba(239,68,68,0.35)" />
+
+                      <!-- Row 2 -->
+                      <rect x="16" y="68" width="20" height="16" fill="rgba(255,255,255,0.18)" stroke="rgba(239,68,68,0.35)" />
+                      <rect x="42" y="68" width="20" height="16" fill="rgba(255,255,255,0.18)" stroke="rgba(239,68,68,0.35)" />
+                      <rect x="68" y="68" width="20" height="16" fill="rgba(255,255,255,0.18)" stroke="rgba(239,68,68,0.35)" />
+                      <rect x="94" y="68" width="20" height="16" fill="rgba(255,255,255,0.18)" stroke="rgba(239,68,68,0.35)" />
+                      <rect x="120" y="68" width="20" height="16" fill="rgba(255,255,255,0.18)" stroke="rgba(239,68,68,0.35)" />
+                      <rect x="146" y="68" width="20" height="16" fill="rgba(255,255,255,0.18)" stroke="rgba(239,68,68,0.35)" />
+                      <rect x="172" y="68" width="20" height="16" fill="rgba(255,255,255,0.18)" stroke="rgba(239,68,68,0.35)" />
+
+                      <!-- Row 3 -->
+                      <rect x="16" y="90" width="20" height="16" fill="rgba(255,255,255,0.18)" stroke="rgba(239,68,68,0.35)" />
+                      <rect x="42" y="90" width="20" height="16" fill="rgba(255,255,255,0.18)" stroke="rgba(239,68,68,0.35)" />
+                      <rect x="68" y="90" width="20" height="16" fill="rgba(255,255,255,0.18)" stroke="rgba(239,68,68,0.35)" />
+                      <rect x="94" y="90" width="20" height="16" fill="rgba(255,255,255,0.18)" stroke="rgba(239,68,68,0.35)" />
+                      <rect x="120" y="90" width="20" height="16" fill="rgba(255,255,255,0.18)" stroke="rgba(239,68,68,0.35)" />
+                      <rect x="146" y="90" width="20" height="16" fill="rgba(255,255,255,0.18)" stroke="rgba(239,68,68,0.35)" />
+                      <rect x="172" y="90" width="20" height="16" fill="rgba(255,255,255,0.18)" stroke="rgba(239,68,68,0.35)" />
+
+                      <!-- Row 4 -->
+                      <rect x="16" y="112" width="20" height="16" fill="rgba(255,255,255,0.18)" stroke="rgba(239,68,68,0.35)" />
+                      <rect x="42" y="112" width="20" height="16" fill="rgba(255,255,255,0.18)" stroke="rgba(239,68,68,0.35)" />
+                      <rect x="68" y="112" width="20" height="16" fill="rgba(255,255,255,0.18)" stroke="rgba(239,68,68,0.35)" />
+                      <rect x="94" y="112" width="20" height="16" fill="rgba(255,255,255,0.18)" stroke="rgba(239,68,68,0.35)" />
+                      <rect x="120" y="112" width="20" height="16" fill="rgba(255,255,255,0.18)" stroke="rgba(239,68,68,0.35)" />
+                      <rect x="146" y="112" width="20" height="16" fill="rgba(255,255,255,0.18)" stroke="rgba(239,68,68,0.35)" />
+                      <rect x="172" y="112" width="20" height="16" fill="rgba(255,255,255,0.18)" stroke="rgba(239,68,68,0.35)" />
+                    </g>
+                  </svg>
+                </div>
+                <div class="intro-header right">
+                  <div class="intro-texts">
+                    <div class="intro-title"><span class="num">01</span> {{ 'onboarding.feature_organize' | translate }}</div>
+                    <div class="intro-sub">{{ 'onboarding.feature_organize_desc' | translate }}</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+                <div class="intro-section intro-02">
+              <div class="intro-row">
+                <div class="intro-header left">
+                  <div class="intro-texts">
+                    <div class="intro-title"><span class="num">02</span> {{ 'onboarding.feature_train' | translate }}</div>
+                    <div class="intro-sub">{{ 'onboarding.feature_train_desc' | translate }}</div>
+                  </div>
+                </div>
+                <div class="intro-svg train-svg">
+                  <svg viewBox="0 0 220 140" preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg">
+                    <defs>
+                      <linearGradient id="gRedTrain" x1="0" y1="0" x2="1" y2="1">
+                        <stop offset="0" stop-color="#dc2626"/>
+                        <stop offset="1" stop-color="#dc2626"/>
+                      </linearGradient>
+                    </defs>
+                    <g class="lifter">
+                      <g class="upper">
+                <circle cx="110" cy="44" r="6" fill="#dc2626" stroke="#991b1b" stroke-width="1.5"/>
+                <rect x="104" y="48" width="12" height="26" rx="6" fill="#dc2626" stroke="#991b1b" stroke-width="1.5"/>
+                <!-- Arms fixed to bar grip -->
+                <path d="M104 54 L96 68" fill="none" stroke="#dc2626" stroke-width="4" stroke-linecap="round"/>
+                <path d="M116 54 L124 68" fill="none" stroke="#dc2626" stroke-width="4" stroke-linecap="round"/>
+              </g>
+              <g class="legs">
+                <!-- Legs static -->
+                <path d="M110 74 L100 104" fill="none" stroke="#dc2626" stroke-width="4" stroke-linecap="round"/>
+                <path d="M110 74 L120 104" fill="none" stroke="#dc2626" stroke-width="4" stroke-linecap="round"/>
+              </g>
+            </g>
+                    <g class="rep">
+                      <rect x="40" y="68" width="140" height="8" rx="4" fill="#d1d5db"/>
+                      <!-- Hands on bar -->
+                      <circle cx="96" cy="72" r="2.5" fill="#dc2626"/>
+                      <circle cx="124" cy="72" r="2.5" fill="#dc2626"/>
+                      <rect x="28" y="50" width="20" height="44" rx="3" fill="url(#gRedTrain)"/>
+                      <rect x="172" y="50" width="20" height="44" rx="3" fill="url(#gRedTrain)"/>
+                    </g>
+                    <g class="cadence">
+                      <circle cx="70" cy="108" r="3" fill="#ffffff" opacity="0.2" class="c1" />
+                      <circle cx="110" cy="108" r="3" fill="#ffffff" opacity="0.2" class="c2" />
+                      <circle cx="150" cy="108" r="3" fill="#ffffff" opacity="0.2" class="c3" />
+                    </g>
+                  </svg>
+                </div>
+              </div>
+            </div>
+
+            <div class="intro-section intro-03">
+              <div class="intro-row">
+                <div class="intro-svg progress-svg">
+                  <svg viewBox="0 0 220 140" preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg">
+                    <defs>
+                      <linearGradient id="gArea" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="0" stop-color="rgba(239,68,68,0.35)"/>
+                        <stop offset="1" stop-color="rgba(239,68,68,0)"/>
+                      </linearGradient>
+                    </defs>
+                    <!-- Raise chart smoothly from baseline using scale transform pivoted at y=110 -->
+                    <g transform="translate(0,110)">
+                      <g class="graph-anim">
+                        <g transform="translate(0,-110)">
+                          <path d="M10 100 L50 88 L90 96 L130 70 L170 76 L210 54" stroke="#dc2626" stroke-width="4" fill="none" class="line"/>
+                          <path d="M10 100 L50 88 L90 96 L130 70 L170 76 L210 54 L210 110 L10 110 Z" fill="url(#gArea)" class="area"/>
+                        </g>
+                      </g>
+                    </g>
+                  </svg>
+                </div>
+                <div class="intro-header right">
+                  <div class="intro-texts">
+                    <div class="intro-title"><span class="num">03</span> {{ 'onboarding.feature_progress' | translate }}</div>
+                    <div class="intro-sub">{{ 'onboarding.feature_progress_desc' | translate }}</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          </div>
+        </section>
+        <section class="slide" [class.active]="step===1">
+          <img class="bg-photo pos-center" [src]="imgCenter" alt="fitness" loading="eager" fetchpriority="low" decoding="async" [attr.referrerpolicy]="'no-referrer'" [attr.crossorigin]="'anonymous'" />
+          <div class="tint-red"></div>
+          <div class="top-gradient"></div>
+          <div class="bottom-gradient"></div>
+          <div class="vignette"></div>
+          <div class="vignette-left"></div>
+          <div class="vignette-right"></div>
+          <div class="content">
+            <div class="overlay-card lang-card">
+              <div class="lang-header">
+                <ion-icon name="globe"></ion-icon>
+                <div class="lang-title">{{ 'onboarding.language' | translate }}</div>
+              </div>
+              <div class="lang-options" role="group" aria-label="Idioma">
+                <button type="button" class="lang-option" [class.selected]="language==='en'" (click)="setLanguage('en')" aria-pressed="{{language==='en'}}">
+                  <ion-icon name="globe"></ion-icon>
+                  <span>English</span>
+                  <span class="code">EN</span>
+                </button>
+                <button type="button" class="lang-option" [class.selected]="language==='es'" (click)="setLanguage('es')" aria-pressed="{{language==='es'}}">
+                  <ion-icon name="globe"></ion-icon>
+                  <span>Español</span>
+                  <span class="code">ES</span>
+                </button>
+                <button type="button" class="lang-option" [class.selected]="language==='de'" (click)="setLanguage('de')" aria-pressed="{{language==='de'}}">
+                  <ion-icon name="globe"></ion-icon>
+                  <span>Deutsch</span>
+                  <span class="code">DE</span>
+                </button>
+                <button type="button" class="lang-option" [class.selected]="language==='ko'" (click)="setLanguage('ko')" aria-pressed="{{language==='ko'}}">
+                  <ion-icon name="globe"></ion-icon>
+                  <span>한국어</span>
+                  <span class="code">KO</span>
+                </button>
+              </div>
+<div class="weight-section" style="margin-top: 24px; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 20px;">
+  <div class="lang-header">
+    <ion-icon name="body" style="color: #DC2626; font-size: 24px; margin-bottom: 4px;"></ion-icon>
+    <div class="lang-title">{{ 'onboarding.initial_weight' | translate }}</div>
+    <div class="lang-sub">{{ 'onboarding.weight_required' | translate }}</div>
+  </div>
+  <div class="weight-input-row" style="display: flex; gap: 12px; margin-top: 12px;">
+      <div class="input-wrapper input-wrapper-red" style="flex: 1; background: rgba(0,0,0,0.3); border-radius: 12px; border: 1px solid rgba(255,255,255,0.1); padding: 0 12px; height: 48px; display: flex; align-items: center; transition: border-color 0.2s;">
+          <input type="number" inputmode="decimal" [(ngModel)]="initialWeight" placeholder="0.0" style="width: 100%; background: transparent; border: none; color: white; font-size: 18px; font-weight: bold; outline: none;">
+      </div>
+      <div class="unit-toggle" style="display: flex; background: rgba(0,0,0,0.3); border-radius: 12px; border: 1px solid rgba(255,255,255,0.1); padding: 4px;">
+          <button type="button" [class.active-red]="weightUnit==='kg'" (click)="setUnit('kg')" style="padding: 0 16px; border-radius: 8px; font-weight: bold; font-size: 14px; color: #9ca3af; transition: all 0.2s;" [style.background]="weightUnit==='kg' ? '#7f1d1d' : 'transparent'" [style.color]="weightUnit==='kg' ? '#fecaca' : '#9ca3af'">{{ 'common.kg' | translate }}</button>
+          <button type="button" [class.active-red]="weightUnit==='lb'" (click)="setUnit('lb')" style="padding: 0 16px; border-radius: 8px; font-weight: bold; font-size: 14px; color: #9ca3af; transition: all 0.2s;" [style.background]="weightUnit==='lb' ? '#7f1d1d' : 'transparent'" [style.color]="weightUnit==='lb' ? '#fecaca' : '#9ca3af'">{{ 'common.lb' | translate }}</button>
+      </div>
+  </div>
+</div>
+
+              <div class="mode-section" style="margin-top: 24px; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 20px;">
+                <div class="lang-header">
+                  <ion-icon name="help-circle"></ion-icon>
+                  <div class="lang-title">{{ 'onboarding.account_mode_label' | translate }}</div>
+                  <div class="lang-sub">{{ 'onboarding.account_mode_hint' | translate }}</div>
+                </div>
+                <div class="lang-options" role="group" aria-label="Tipo de cuenta">
+                  <button type="button" class="lang-option" [class.selected]="accountMode==='personal'" (click)="selectAccountMode('personal')" aria-pressed="{{accountMode==='personal'}}">
+                    <ion-icon name="person"></ion-icon>
+                    <span>{{ 'onboarding.mode_personal' | translate }}</span>
+                    <span class="code">PR</span>
+                  </button>
+                  <button type="button" class="lang-option" [class.selected]="accountMode==='coach'" (click)="selectAccountMode('coach')" aria-pressed="{{accountMode==='coach'}}">
+                    <ion-icon name="people-circle"></ion-icon>
+                    <span>{{ 'onboarding.mode_coach' | translate }}</span>
+                    <span class="code">CO</span>
+                  </button>
+                </div>
+              </div>
+
+            </div>
+          </div>
+        </section>
+        <section class="slide" [class.active]="step===2" *ngIf="step === 2 || isValidWeight">
+          <img class="bg-photo pos-right" [src]="imgRight" alt="fitness" loading="eager" fetchpriority="low" decoding="async" [attr.referrerpolicy]="'no-referrer'" [attr.crossorigin]="'anonymous'" />
+          <div class="tint-red"></div>
+          <div class="top-gradient"></div>
+          <div class="bottom-gradient"></div>
+          <div class="vignette"></div>
+          <div class="vignette-left"></div>
+          <div class="vignette-right"></div>
+          <div class="content">
+            <ion-icon name="flame" class="ready-icon"></ion-icon>
+            <div class="title">{{ 'onboarding.ready_title' | translate }}</div>
+            <div class="subtitle">{{ 'onboarding.ready_subtitle' | translate }}</div>
+            <button class="start-btn wide-btn" (click)="complete()"><ion-icon name="checkmark"></ion-icon><span>{{ 'onboarding.start_btn' | translate }}</span></button>
+          </div>
+        </section>
+      </div>
+    </div>
+
+
+
+    <div class="nav">
+      <div class="dots">
+        <span [class.active]="step===0" (click)="scrollToIndex(0)"></span>
+        <span [class.active]="step===1" (click)="scrollToIndex(1)"></span>
+        <span [class.active]="step===2" (click)="scrollToIndex(2)"></span>
+      </div>
+    </div>
+  <div class="bottom-cta" [style.bottom]="step===2 ? 'calc(env(safe-area-inset-bottom) + 60px)' : 'calc(env(safe-area-inset-bottom) + 80px)'">
+    <div class="cta-left">
+      <button class="nav-btn prev" *ngIf="step>0" (click)="prev()"><ion-icon name="chevron-back"></ion-icon></button>
+    </div>
+    <div class="cta-center">
+      <button type="button" class="google-cta" *ngIf="step===0 && !isAuthenticated" (click)="signInWithGoogle()" style="display:flex;align-items:center;gap:8px;background:#fff;color:#111;padding:10px 14px;border-radius:12px;font-weight:600;box-shadow:0 6px 18px rgba(0,0,0,0.25);">
+        <ion-icon name="logo-google" style="font-size:18px;color:#DB4437"></ion-icon>
+        <span>{{ 'onboarding.google_continue' | translate }}</span>
+      </button>
+
+    </div>
+    <div class="cta-right" *ngIf="step===0 && isAuthenticated">
+      <button class="nav-btn next" (click)="next()"><ion-icon name="chevron-forward"></ion-icon></button>
+    </div>
+    <div class="cta-right" *ngIf="step>0">
+      <button class="nav-btn next" *ngIf="step<2" (click)="next()" [disabled]="step === 1 && (!initialWeight || initialWeight <= 0)" [style.opacity]="step === 1 && (!initialWeight || initialWeight <= 0) ? '0.5' : '1'"><ion-icon name="chevron-forward"></ion-icon></button>
+    </div>
+  </div>
+    <div class="home-indicator"></div>
+  </div>
+
+</div>

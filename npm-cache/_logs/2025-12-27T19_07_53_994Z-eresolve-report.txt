@@ -1,0 +1,18 @@
+'Log files:
+/Users/everit/Desktop/dev/Liftlog/Liftlog/npm-cache/_logs/2025-12-27T19_07_53_994Z-debug-0.log
+
+# npm resolution error report
+
+While resolving: LiftBuilder@0.0.1
+Found: @capacitor/core@7.4.4
+node_modules/@capacitor/core
+  @capacitor/core@"7.4.4" from the root project
+
+Could not resolve dependency:
+peer @capacitor/core@">=8.0.0" from @capacitor/clipboard@8.0.0
+node_modules/@capacitor/clipboard
+  @capacitor/clipboard@"*" from the root project
+
+Fix the upstream dependency conflict, or retry
+this command with --force or --legacy-peer-deps
+to accept an incorrect (and potentially broken) dependency resolution.

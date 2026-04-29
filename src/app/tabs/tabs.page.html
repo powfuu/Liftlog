@@ -1,0 +1,36 @@
+<ion-tabs>
+  <ion-tab-bar slot="bottom" class="glass-nav-container">
+    <!-- Coaching Tab (only visible in coach mode) -->
+    <ion-tab-button *ngIf="isCoachMode" tab="coaching" class="glass-nav-button" routerDirection="root" layout="icon-top">
+      <ion-icon name="people" class="nav-icon"></ion-icon>
+    </ion-tab-button>
+
+    <!-- Home Tab -->
+    <ion-tab-button tab="home" class="glass-nav-button" routerDirection="root" layout="icon-top">
+      <ion-icon name="home" class="nav-icon"></ion-icon>
+    </ion-tab-button>
+
+    <!-- Programs Tab -->
+    <ion-tab-button tab="programs" class="glass-nav-button" routerDirection="root" layout="icon-top">
+      <ion-icon name="albums" class="nav-icon"></ion-icon>
+    </ion-tab-button>
+
+    <!-- Weight Tab -->
+    <ion-tab-button tab="weight" class="glass-nav-button" routerDirection="root" layout="icon-top">
+      <ion-icon name="body" class="nav-icon"></ion-icon>
+    </ion-tab-button>
+
+    <!-- Tracking Tab -->
+    <ion-tab-button tab="tracking" class="glass-nav-button" routerDirection="root" layout="icon-top">
+      <ion-icon name="barbell" class="nav-icon"></ion-icon>
+    </ion-tab-button>
+
+    <!-- Account Tab -->
+    <ion-tab-button tab="account" class="glass-nav-button" routerDirection="root" layout="icon-top">
+      <img *ngIf="avatarUrl; else accIcon" [src]="avatarUrl" class="nav-avatar" alt="profile" referrerpolicy="no-referrer" crossorigin="anonymous" fetchpriority="high" (error)="onAvatarError()" />
+      <ng-template #accIcon>
+        <ion-icon name="person-circle" class="nav-icon"></ion-icon>
+      </ng-template>
+    </ion-tab-button>
+  </ion-tab-bar>
+</ion-tabs>

@@ -1,0 +1,31 @@
+.modal-container { position: fixed; inset: 0; background: var(--liftlog-backdrop); display: grid; grid-template-rows: auto 1fr; }
+app-notch-header { margin: 12px 16px 0; display: block; }
+.modal-body { background: var(--liftlog-modal-surface); border-top: 1px solid var(--liftlog-modal-border); border-radius: 24px 24px 0 0; padding: 16px; overflow:auto; }
+.metrics-list { display:flex; flex-direction:column; gap:12px; }
+.summary-card { display:grid; grid-template-columns: 1fr 1fr; gap:12px; padding:16px; border-radius:20px; background: var(--liftlog-header-bg); border:1px solid rgba(239,68,68,0.25); box-shadow: 0 12px 28px rgba(0,0,0,0.18); margin-bottom: 14px; }
+.summary-title { color: var(--liftlog-text-primary); font-weight:900; letter-spacing:-0.01em; margin-bottom:6px; }
+.summary-stats, .summary-right { display:grid; gap:8px; }
+.s-item { display:grid; grid-template-columns: 16px 1fr auto; align-items:center; gap:8px; color: var(--liftlog-text-secondary); font-weight:700; }
+.s-item ion-icon { color:#DC2626; font-size:14px; }
+.s-item strong { color: var(--liftlog-text-primary); font-weight:900; }
+.metrics-list { display:flex; flex-direction:column; gap:12px; width: 100%; }
+.metric-accordion { border-radius: 16px; background: var(--liftlog-glass-bg); border:1px solid var(--liftlog-glass-border); overflow:hidden; transition: background .2s ease; width: 100%; flex-shrink: 0; }
+.metric-accordion.expanded { background: var(--liftlog-glass-bg); border-color: rgba(220,38,38,0.25); }
+.accordion-header { width:100%; display:flex; align-items:center; justify-content:space-between; padding:14px; background:transparent; border:none; cursor:pointer; }
+.header-content { display:flex; align-items:center; gap:12px; }
+.header-icon { width:36px; height:36px; border-radius:10px; background: var(--liftlog-chip-bg); color:#DC2626; display:grid; place-items:center; font-size:18px; }
+.header-info { display:flex; flex-direction:column; align-items:flex-start; gap:2px; }
+.ex-name { color: var(--liftlog-text-primary); font-weight:800; font-size:14px; }
+.ex-quick-stats { display:flex; gap:10px; color: var(--liftlog-text-secondary); font-size:11px; font-weight:600; }
+.ex-quick-stats span { display:flex; align-items:center; gap:4px; }
+.ex-quick-stats ion-icon { color:#DC2626; font-size:10px; }
+.chevron { color: var(--liftlog-text-secondary); font-size:18px; transition: transform .25s ease; }
+.metric-accordion.expanded .chevron { transform: rotate(180deg); color:#DC2626; }
+.accordion-body { height:0; overflow:hidden; transition: height .3s cubic-bezier(0.4,0,0.2,1); }
+.metric-accordion.expanded .accordion-body { height:auto; }
+.accordion-grid { display:grid; grid-template-columns: repeat(2, 1fr); gap:10px; padding: 0 14px 14px; border-top:1px solid var(--liftlog-modal-border); padding-top:14px; }
+.stat-box { display:flex; flex-direction:column; gap:4px; background: var(--liftlog-chip-bg); padding:10px; border-radius:10px; border: 1px solid var(--liftlog-chip-border); }
+.stat-box .label { color: var(--liftlog-text-secondary); font-size:10px; font-weight:600; text-transform:uppercase; letter-spacing:0.02em; }
+.stat-box .val { color: var(--liftlog-text-primary); font-size:14px; font-weight:800; }
+.empty { display:grid; place-items:center; gap:8px; color: var(--liftlog-text-secondary); font-weight:800; padding:18px; }
+@keyframes cardIn { from { opacity:0; transform: translateY(8px) scale(0.98); } to { opacity:1; transform: translateY(0) scale(1); } }

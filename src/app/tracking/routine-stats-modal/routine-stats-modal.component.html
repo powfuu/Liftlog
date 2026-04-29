@@ -1,0 +1,67 @@
+<div class="modal-container">
+  <app-notch-header
+    [title]="routine?.name || ('tracking.routine' | translate)"
+    [icon]="'barbell'"
+    [actionIcon]="'close'"
+    [items]="headerItems"
+    (action)="close()">
+  </app-notch-header>
+
+  <div class="modal-body">
+    <div class="metrics-list" *ngIf="metrics?.length; else empty">
+      <div class="metric-accordion" *ngFor="let m of metrics" [class.expanded]="expandedIds.has(m.exerciseId)">
+        <button class="accordion-header" (click)="toggleAccordion(m.exerciseId)">
+          <div class="header-content">
+            <div class="header-icon"><ion-icon name="barbell"></ion-icon></div>
+            <div class="header-info">
+              <span class="ex-name">{{ m.name || '-' }}</span>
+              <div class="ex-quick-stats">
+                <span><ion-icon name="layers"></ion-icon> {{ (m.totalVolumeKg || 0) | number:'1.0-0' }}</span>
+                <span><ion-icon name="list"></ion-icon> {{ m.totalReps || 0 }}</span>
+                <span class="sets-count"><ion-icon name="flash"></ion-icon> {{ m.totalSets || 0 }}</span>
+              </div>
+            </div>
+            <div class="sparkline-wrapper" style="width: 80px; height: 32px; margin-left: auto; display: flex; align-items: center;" *ngIf="m.sparklineData && m.sparklineData.length > 1">
+              <canvas #sparkCanvas [attr.data-exercise-id]="m.exerciseId" width="80" height="32"></canvas>
+            </div>
+          </div>
+          <ion-icon name="chevron-down" class="chevron"></ion-icon>
+        </button>
+        <div class="accordion-body">
+          <div class="accordion-grid">
+            <div class="stat-box">
+              <span class="label">{{ 'tracking.weight_kg' | translate }}</span>
+              <span class="val">{{ (m.lastMaxKg || 0) | number:'1.0-1' }}</span>
+            </div>
+            <div class="stat-box">
+              <span class="label">{{ 'tracking.reps' | translate }}</span>
+              <span class="val">{{ m.totalReps }}</span>
+            </div>
+            <div class="stat-box">
+              <span class="label">{{ 'tracking.total_volume' | translate }}</span>
+              <span class="val">{{ m.totalVolumeKg | number:'1.0-0' }}</span>
+            </div>
+            <div class="stat-box">
+              <span class="label">{{ 'tracking.total_workouts' | translate }}</span>
+              <span class="val">{{ m.workoutsCount }}</span>
+            </div>
+            <div class="stat-box">
+              <span class="label">{{ 'tracking.best_1rm' | translate }}</span>
+              <span class="val">{{ m.best1rmKg | number:'1.0-1' }}</span>
+            </div>
+            <div class="stat-box">
+              <span class="label">{{ 'tracking.avg_volume_per_workout' | translate }}</span>
+              <span class="val">{{ m.avgVolumePerWorkoutKg | number:'1.0-1' }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <ng-template #empty>
+      <div class="empty">
+        <ion-icon name="information-circle"></ion-icon>
+        <span>{{ 'common.no_data' | translate }}</span>
+      </div>
+    </ng-template>
+  </div>
+</div>

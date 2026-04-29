@@ -1,0 +1,99 @@
+<ion-content [fullscreen]="true" (ionViewWillEnter)="onIonViewWillEnter()" (ionViewDidEnter)="onIonViewDidEnter()">
+  <div class="screen" [class.animate-on-enter]="animateEnter">
+
+    <app-notch-header class="enter-fade-up" [title]="'common.weight' | translate" [icon]="'body'" [items]="[]"></app-notch-header>
+
+    <div class="page animate-fade-in weight-page">
+
+      <!-- 1. Selector (KG/LB) -->
+      <div style="margin-top: -10px;" class="controls page-enter">
+        <div class="segment-card segment-card--compact">
+          <ion-segment class="time-tabs time-tabs--small" [(ngModel)]="selectedUnit" (ionChange)="onUnitChange($event)" mode="ios">
+            <ion-segment-button value="kg"><ion-label>{{ 'common.kg' | translate }}</ion-label></ion-segment-button>
+            <ion-segment-button value="lb"><ion-label>{{ 'common.lb' | translate }}</ion-label></ion-segment-button>
+          </ion-segment>
+        </div>
+      </div>
+
+      <br/>
+      <!-- 2. Metrics (Current Weight, Records) -->
+      <div class="metrics-grid" [@gridEnter]>
+        <div class="metric-card metric-card--redbg metric-card--current" [@sectionEnter]>
+          <div class="metric-icon metric-icon--red"><ion-icon name="barbell"></ion-icon></div>
+          <p class="metric-title"><ion-icon name="body"></ion-icon>{{ 'weight.current_weight' | translate }}</p>
+          <h2 class="metric-value">{{ currentWeight | number:'1.0-1' }}<span class="metric-unit">{{ selectedUnit }}</span></h2>
+        </div>
+        <div class="metric-card" [@sectionEnter]>
+          <div class="metric-icon metric-icon--red"><ion-icon name="add-circle"></ion-icon></div>
+          <p class="metric-title"><ion-icon name="add-circle"></ion-icon>{{ 'weight.records' | translate }}</p>
+          <h2 class="metric-value">{{ logs.length }}</h2>
+        </div>
+      </div>
+
+      <!-- 3. Input (Log Weight) -->
+      <div class="secondary-grid" style="margin-left: 20px; margin-right: 20px; margin-bottom: 16px; gap: 8px;">
+        <div class="chart-card transparent-card" [@sectionEnter] style="padding-bottom: 4px;">
+          <h3 style="margin-left: -18px;" class="chart-subtitle"><ion-icon name="body"></ion-icon>{{ 'weight.log_weight' | translate }}</h3>
+          <div style="width: 100%;">
+            <div class="bento-card transparent-card" style="padding:0;">
+              <div style="display:flex; gap:12px; align-items:center;">
+                <div class="input-with-unit">
+                  <ion-input type="number" inputmode="decimal" [(ngModel)]="inputWeight" [placeholder]="'common.weight' | translate" (keyup.enter)="saveWeight()"></ion-input>
+                  <span class="input-unit">{{ selectedUnit | uppercase }}</span>
+                </div>
+                <ion-button (click)="saveWeight()" fill="solid" color="danger" size="small" class="btn-compact-danger">{{ 'weight.register' | translate }}</ion-button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 4. Chart (Weight Trend) -->
+      <div class="secondary-grid" [@gridEnter] style="margin-top: 10px; margin-bottom: 20px;">
+        <div class="weight-chart-card" [@sectionEnter]>
+          <h3 class="chart-subtitle">{{ 'weight.trend' | translate }}</h3>
+          <div class="metric-pill" [class.metric-pill--green]="weightChange < 0" [class.metric-pill--red]="weightChange > 0" [class.metric-pill--gray]="weightChange === 0" *ngIf="currentWeight > 0">
+            <ion-icon [name]="weightChange > 0 ? 'trending-up' : (weightChange < 0 ? 'trending-down' : 'remove-outline')"></ion-icon>
+            <span>{{ 'weight.change_30d' | translate }} {{ weightChange | number:'1.0-1' }} {{ selectedUnit | uppercase }}</span>
+          </div>
+          <div class="weight-trend-chart" [@chartEnter]>
+            <canvas #weightChartCanvas></canvas>
+          </div>
+        </div>
+      </div>
+
+      <!-- 5. History -->
+      <div style="margin-top: 0;" class="secondary-grid" [@gridEnter]>
+        <div class="chart-card transparent-card" [@sectionEnter]>
+          <h3 class="chart-subtitle"><ion-icon name="list"></ion-icon>{{ 'weight.history' | translate }}</h3>
+          <div style="width: 100%;">
+            <div class="bento-card transparent-card weight-table-scroll" style="padding:0; max-height: 500px; overflow-y: auto;">
+              <table class="weight-table">
+                <thead>
+                  <tr>
+                    <th>{{ 'common.weight' | translate }}</th>
+                    <th style="text-align:right;">{{ 'weight.date' | translate }}</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr *ngFor="let l of displayedLogs">
+                    <td class="cell-weight"><span class="weight-value">{{ convert(l.weight, l.unit, selectedUnit) | number:'1.0-1' }}</span> <span class="weight-unit">{{ selectedUnit | uppercase }}</span></td>
+                    <td class="cell-date">
+                      <div class="date-wrapper">
+                        {{ l.date | localeDate:'medium' }} <ion-icon name="trash" (click)="deleteLog(l.id)" class="delete-icon"></ion-icon>
+                      </div>
+                    </td>
+                  </tr>
+                  <tr *ngIf="logs.length === 0">
+                    <td colspan="2" class="cell-empty">{{ 'weight.no_records' | translate }}</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</ion-content>

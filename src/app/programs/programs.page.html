@@ -1,0 +1,100 @@
+<ion-content class="bg-surface">
+  <div class="page-container page-enter pt-12 pb-24">
+    <app-notch-header class="enter-fade-up" [title]="'programs.title' | translate" [icon]="'albums'" [actionIcon]="'add'" (action)="openCreateProgram()">
+      <div notch-extra *ngIf="view==='routines' && selectedProgram">
+        <div class="code-chip" [title]="('programs.id_label' | translate)" data-no-tab-swipe="true" (click)="$event.stopPropagation(); copySelectedProgramCode()">
+          <span>{{ selectedProgramCode || '—' }}</span>
+          <button class="copy-btn" data-no-tab-swipe="true" (click)="$event.stopPropagation(); copySelectedProgramCode()"><ion-icon name="copy-outline"></ion-icon></button>
+        </div>
+      </div>
+    </app-notch-header>
+
+
+    <div *ngIf="!isLoading && programs.length === 0" class="empty-hero empty-anim enter-fade-up">
+      <div class="hero-glow"></div>
+      <div class="hero-icon"><ion-icon name="albums"></ion-icon></div>
+      <h2>{{ 'programs.empty_title' | translate }}</h2>
+      <p>{{ 'programs.empty_desc' | translate }}</p>
+      <div class="hero-actions">
+        <button type="button" class="hero-primary" (click)="openCreateProgram()"><ion-icon name="add"></ion-icon><span>{{ 'programs.create_btn' | translate }}</span></button>
+      </div>
+    </div>
+
+    <div *ngIf="!isLoading && view==='programs' && programs.length > 0" class="routines-list" [class.stagger-load]="staggerState" cdkDropList [cdkDropListData]="programs" [cdkDropListOrientation]="'vertical'" (cdkDropListDropped)="dropPrograms($event)">
+      <div *ngFor="let p of programs; let i = index; trackBy: trackByProgramName" class="glass-card program-card" cdkDrag cdkDragLockAxis="y" [class.dragging]="draggingId===p.name" (cdkDragStarted)="onProgDragStarted(p.name)" (cdkDragEnded)="onProgDragEnded()" (cdkDragEntered)="onProgDragEntered(i)" (cdkDragExited)="onProgDragExited(i)" [class.drop-target]="hoverIndex===i" [class.card-initial]="initialAnimation" [class.card-enter]="p.name === lastAddedProgram" [class.card-exit]="deletingPrograms.has(p.name)" [attr.id]="'program-' + p.name">
+        <div class="program-row">
+          <div class="program-body" (click)="openProgram(p.name)">
+            <div class="program-header">
+              <div class="drag-strip" cdkDragHandle [attr.aria-label]="('common.drag_area' | translate)"></div>
+              <button class="drag-handle" cdkDragHandle [attr.aria-label]="('common.drag_to_reorder' | translate)" (click)="$event.stopPropagation()">
+                <span class="dot"></span><span class="dot"></span>
+                <span class="dot"></span><span class="dot"></span>
+                <span class="dot"></span><span class="dot"></span>
+              </button>
+              <div class="program-title">{{ p.name }}</div>
+              <div class="program-head-meta">
+                <div class="days-badge"><ion-icon name="calendar"></ion-icon><span>{{ p.daysPerWeek }} {{ 'programs.days_week' | translate }}</span></div>
+                <div class="code-chip small" [title]="('programs.id_label' | translate)" data-no-tab-swipe="true" (click)="$event.stopPropagation(); copyProgramCode(p.code)">
+                  <span>{{ p.code || '—' }}</span>
+                  <button class="copy-btn" data-no-tab-swipe="true" (click)="$event.stopPropagation(); copyProgramCode(p.code)"><ion-icon name="copy-outline"></ion-icon></button>
+                </div>
+              </div>
+            </div>
+            <div class="program-desc program-desc--ellipsis" *ngIf="p.description" [title]="p.description">{{ p.description }}</div>
+            <div class="program-meta">
+              <span class="routine-tag"><ion-icon name="list"></ion-icon>{{ p.routineCount }} {{ 'home.routines' | translate }}</span>
+              <span class="routine-tag"><ion-icon name="barbell"></ion-icon>{{ p.exerciseCount }} {{ 'home.exercises' | translate }}</span>
+            </div>
+            <div class="program-actions">
+            <button type="button" class="action-button danger" (click)="onDeleteProgram(p.name, $event)"><ion-icon name="trash"></ion-icon></button>
+            <button class="action-button" (click)="$event.stopPropagation(); openEditProgram(p.name)"><ion-icon name="create"></ion-icon></button>
+            <span class="program-state-tag" data-no-tab-swipe="true" [class.active]="p.isActive !== false" [class.inactive]="p.isActive === false" (click)="$event.stopPropagation()">
+              {{ (p.isActive !== false) ? ('common.program_enabled_label' | translate) : ('common.program_disabled_label' | translate) }}
+            </span>
+            <ion-toggle class="program-toggle" data-no-tab-swipe="true" [checked]="p.isActive !== false" labelPlacement="end" (click)="$event.stopPropagation()" (ionChange)="$event.stopPropagation(); onProgramToggle($event, p.name, p.isActive !== false)"></ion-toggle>
+              <button class="action-button" (click)="$event.stopPropagation(); openProgram(p.name)"><ion-icon name="chevron-forward"></ion-icon></button>
+            </div>
+          </div>
+          <div class="drag-preview" *cdkDragPreview>
+            <div class="program-header">
+              <div class="program-title">{{ p.name }}</div>
+              <div class="days-badge"><ion-icon name="calendar"></ion-icon><span>{{ p.daysPerWeek }} {{ 'programs.days_week' | translate }}</span></div>
+            </div>
+          </div>
+          <div class="drag-placeholder" *cdkDragPlaceholder></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Routines within selected Program -->
+      <div *ngIf="!isLoading && view==='routines'" class="routines-list stagger-load" cdkDropList [cdkDropListData]="filteredRoutines" [cdkDropListOrientation]="'vertical'" (cdkDropListDropped)="dropProgramRoutines($event)">
+        <div *ngFor="let routine of filteredRoutines; let i = index; trackBy: trackByRoutineId" class="glass-card routine-card" cdkDrag [cdkDragStartDelay]="{touch: 180, mouse: 0}" cdkDragLockAxis="y" [class.dragging]="draggingId===routine.id" (cdkDragStarted)="onRutDragStarted(routine.id)" (cdkDragEnded)="onRutDragEnded()" (cdkDragEntered)="onRutDragEntered(i)" (cdkDragExited)="onRutDragExited(i)" [class.drop-target]="hoverIndex===i" [class.card-initial]="initialAnimation" [style.--i]="i">
+        <div class="card-header">
+          <button class="drag-handle" cdkDragHandle [attr.aria-label]="('common.drag_to_reorder' | translate)" (click)="$event.stopPropagation()">
+            <span class="dot"></span><span class="dot"></span>
+            <span class="dot"></span><span class="dot"></span>
+            <span class="dot"></span><span class="dot"></span>
+          </button>
+          <div class="header-text">
+            <div class="card-title">{{ routine.name }}</div>
+            <span class="routine-tag">{{ routine.programName || ('common.program' | translate) }}</span>
+          </div>
+          <div class="header-actions">
+            <button class="action-button" (click)="$event.stopPropagation(); goToRoutinesView()"><ion-icon name="chevron-forward"></ion-icon></button>
+          </div>
+        </div>
+        <div class="drag-preview" *cdkDragPreview>
+          <div class="card-header">
+            <div class="header-text">
+              <div class="card-title">{{ routine.name }}</div>
+            </div>
+            <div class="header-actions"></div>
+          </div>
+        </div>
+        <div class="drag-placeholder" *cdkDragPlaceholder></div>
+      </div>
+    </div>
+
+
+  </div>
+</ion-content>

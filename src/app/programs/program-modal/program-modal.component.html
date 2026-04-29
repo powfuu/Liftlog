@@ -1,0 +1,74 @@
+<div class="program-modal-card">
+  <div class="modal-notch">
+    <div class="notch-title">
+      <ion-icon name="albums" class="modal-title-icon"></ion-icon>
+      <span>{{ 'programs.create_modal_title' | translate }}</span>
+    </div>
+    <div class="notch-actions">
+      <button class="notch-action" (click)="dismiss()" aria-label="Close modal">
+        <ion-icon name="close"></ion-icon>
+      </button>
+    </div>
+  </div>
+
+  <div *ngIf="modeReady==='choice'" class="choice-grid" [@panelAnim]>
+    <button class="choice-card" (click)="setMode('manual')" [attr.aria-label]="('programs.create_manual_title' | translate)">
+      <div class="choice-content">
+        <div class="choice-left">
+          <div class="choice-icon"><ion-icon name="create"></ion-icon></div>
+          <div class="choice-text">
+            <div class="choice-title">{{ 'programs.create_manual_title' | translate }}</div>
+            <div class="choice-sub">{{ 'programs.create_manual_sub' | translate }}</div>
+          </div>
+        </div>
+        <ion-icon name="chevron-forward" class="choice-chevron"></ion-icon>
+      </div>
+    </button>
+    <button class="choice-card" (click)="setMode('import')" [attr.aria-label]="('programs.import_title' | translate)">
+      <div class="choice-content">
+        <div class="choice-left">
+          <div class="choice-icon"><ion-icon name="download"></ion-icon></div>
+          <div class="choice-text">
+            <div class="choice-title">{{ 'programs.import_title' | translate }}</div>
+            <div class="choice-sub">{{ 'programs.import_sub' | translate }}</div>
+          </div>
+        </div>
+        <ion-icon name="chevron-forward" class="choice-chevron"></ion-icon>
+      </div>
+    </button>
+  </div>
+
+  <div *ngIf="modeReady==='manual'" class="program-form" [@panelAnim] [class.tab-slide-left]="modeTransition==='left'">
+    <div class="form-group">
+      <label class="form-label">{{ 'programs.name_label' | translate }}</label>
+      <input class="glass-input" type="text" [(ngModel)]="programName" [placeholder]="'programs.name_placeholder' | translate" maxlength="50" />
+      <div class="helper">{{ programName.length }}/50</div>
+    </div>
+    <div style="margin-top: -20px;" class="form-group">
+      <label class="form-label">{{ 'programs.desc_label' | translate }} ({{ 'common.optional' | translate }})</label>
+      <textarea class="glass-textarea" [(ngModel)]="programDescription" rows="3" maxlength="200" [placeholder]="'programs.desc_placeholder' | translate"></textarea>
+      <div class="helper">{{ programDescription.length }}/200</div>
+    </div>
+    <div class="modal-actions">
+      <div class="actions-left">
+        <button *ngIf="!editing" class="modal-secondary" (click)="setMode('choice')"><ion-icon name="chevron-back"></ion-icon><span>{{ 'common.back' | translate }}</span></button>
+      </div>
+      <div class="actions-right">
+        <button class="modal-primary" (click)="save()"><ion-icon name="save"></ion-icon><span>{{ 'programs.save_btn' | translate }}</span></button>
+      </div>
+    </div>
+  </div>
+
+  <div *ngIf="modeReady==='import'" class="program-form" [@panelAnim] [class.tab-slide-right]="modeTransition==='right'">
+    <div class="form-group">
+      <label class="form-label">{{ 'programs.import_title' | translate }}</label>
+      <div class="import-row">
+        <input class="glass-input" type="number" inputmode="numeric" pattern="[0-9]*" [(ngModel)]="importCode" maxlength="7" [placeholder]="'programs.import_placeholder' | translate" (input)="onImportInput($event)" />
+      </div>
+      <div class="import-actions">
+        <button class="modal-secondary" (click)="setMode('choice')"><ion-icon name="chevron-back"></ion-icon><span>{{ 'common.back' | translate }}</span></button>
+        <button class="modal-primary" (click)="importByCode()"><ion-icon name="download"></ion-icon><span>{{ 'programs.import_btn' | translate }}</span></button>
+      </div>
+    </div>
+  </div>
+</div>

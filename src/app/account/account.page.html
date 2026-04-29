@@ -1,0 +1,88 @@
+<div class="account-container">
+  <div class="bg-aurora"><span class="flare f1"></span><span class="flare f2"></span><span class="flare f3"></span></div>
+  <div class="info-note">
+    <ion-icon name="help-circle"></ion-icon>
+    <span>{{ 'account.google_info' | translate }}</span>
+  </div>
+  <div class="account-card stagger-load">
+    <button type="button" class="theme-btn theme-toggle" (click)="toggleTheme()" [attr.aria-label]="theme==='dark' ? 'Dark mode' : 'Light mode'">
+      <ion-icon [name]="theme==='dark' ? 'moon' : 'sunny'"></ion-icon>
+    </button>
+    <div class="profile-block">
+      <div class="avatar" [class.has-img]="!!avatarUrl">
+        <img *ngIf="avatarUrl" [src]="avatarUrl" alt="avatar" [attr.referrerpolicy]="'no-referrer'" [attr.crossorigin]="'anonymous'" fetchpriority="high" (error)="onImgError()">
+        <ion-icon *ngIf="!avatarUrl" name="person-circle" class="avatar-fallback"></ion-icon>
+      </div>
+      <div class="name">{{ displayName || '-' }}</div>
+      <div class="email">{{ email || '-' }}</div>
+    </div>
+
+    <div class="prefs lang-pref">
+      <div class="label">{{ 'account.language_label' | translate }}</div>
+      <div class="lang-options" role="group" [attr.aria-label]="('onboarding.select_lang' | translate)">
+        <button type="button" class="lang-option" [class.selected]="language==='en'" (click)="setLanguage('en')" aria-pressed="{{language==='en'}}">
+          <ion-icon name="globe"></ion-icon>
+          <span>English</span>
+          <span class="code">EN</span>
+        </button>
+        <button type="button" class="lang-option" [class.selected]="language==='es'" (click)="setLanguage('es')" aria-pressed="{{language==='es'}}">
+          <ion-icon name="globe"></ion-icon>
+          <span>Español</span>
+          <span class="code">ES</span>
+        </button>
+        <button type="button" class="lang-option" [class.selected]="language==='de'" (click)="setLanguage('de')" aria-pressed="{{language==='de'}}">
+          <ion-icon name="globe"></ion-icon>
+          <span>Deutsch</span>
+          <span class="code">DE</span>
+        </button>
+        <button type="button" class="lang-option" [class.selected]="language==='ko'" (click)="setLanguage('ko')" aria-pressed="{{language==='ko'}}">
+          <ion-icon name="globe"></ion-icon>
+          <span>한국어</span>
+          <span class="code">KO</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Coach Mode Selector -->
+    <div class="prefs coach-mode-section">
+      <div class="label">{{ 'account.mode_label' | translate }}</div>
+      <div style="margin-top: 4px;" class="lang-options" role="group" aria-label="Tipo de cuenta">
+        <button type="button" class="lang-option" [class.selected]="!isCoachMode" (click)="selectMode('personal')" aria-pressed="{{!isCoachMode}}">
+          <ion-icon name="person"></ion-icon>
+          <span>{{ 'account.mode_personal' | translate }}</span>
+          <span class="code">PR</span>
+        </button>
+        <button type="button" class="lang-option" [class.selected]="isCoachMode" (click)="selectMode('coach')" aria-pressed="{{isCoachMode}}">
+          <ion-icon name="people"></ion-icon>
+          <span>{{ 'account.mode_coach' | translate }}</span>
+          <span class="code">CO</span>
+        </button>
+      </div>
+      <div class="coach-mode-hint" style="color:#9ca3af; display:flex; align-items:center; justify-content:center; gap:8px; margin-top:12px; text-align:center;">
+        <span>{{ 'account.coach_mode_hint' | translate }}</span>
+      </div>
+    </div>
+
+    <!-- User ID Display (for sharing) -->
+    <div class="user-id-section">
+      <div class="label">{{ 'account.user_id_label' | translate }}</div>
+      <div class="user-id-row">
+        <span class="user-id">{{ userId7Digit || '-' }}</span>
+        <button
+          type="button"
+          class="copy-btn"
+          (click)="copyUserId()"
+          [class.copied]="copiedUserId"
+          [disabled]="!userId7Digit"
+          [attr.aria-disabled]="!userId7Digit">
+          <ion-icon [name]="copiedUserId ? 'checkmark' : 'copy-outline'"></ion-icon>
+        </button>
+      </div>
+      <p class="user-id-hint">{{ 'account.share_id_hint' | translate }}</p>
+    </div>
+
+    <div class="actions">
+      <button type="button" class="logout-btn" (click)="logout()">{{ 'account.logout' | translate }}</button>
+    </div>
+  </div>
+</div>

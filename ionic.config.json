@@ -1,0 +1,8 @@
+{
+  "name": "Lift Builder",
+  "integrations": {
+    "capacitor": {}
+  },
+  "type": "angular-standalone",
+  "mode": "ios"
+}

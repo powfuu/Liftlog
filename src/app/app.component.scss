@@ -1,0 +1,129 @@
+.tab-swipe-overlay {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  /* Start hidden and scaled down */
+  transform: translate(-50%, -50%) scale(0.5);
+  opacity: 0;
+  z-index: 99999;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+
+  /* Dark backdrop requested: opacity 0.8 dark */
+  background: rgba(0, 0, 0, 0.8);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+
+  box-shadow:
+    0 0 0 1px rgba(255,255,255,0.08),
+    0 8px 32px rgba(0,0,0,0.5);
+
+  pointer-events: none;
+
+  /* Smooth transition for exit */
+  transition: opacity 0.15s ease-out, transform 0.15s ease-out;
+}
+
+/* Background gradient circle - Button Color Animation */
+.tab-swipe-overlay::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  /* Start Gray */
+  background: #52525b;
+  opacity: 0;
+  transform: scale(0.8);
+  /* Long transition for color to create "delay" feel */
+  transition:
+    opacity 0.3s ease,
+    transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275),
+    background 0.5s ease;
+}
+
+/* Visible State */
+.tab-swipe-overlay.visible {
+  opacity: 1;
+  transform: translate(-50%, -50%) scale(1);
+  animation: overlayPopIn 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+
+.tab-swipe-overlay.visible::before {
+  opacity: 1;
+  transform: scale(1);
+  /* Turn Red "al rato" (delayed/slow transition) */
+  background: #DC2626;
+  /* Add a small delay to the color change so it starts gray then turns red */
+  transition:
+    opacity 0.3s ease,
+    transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275),
+    background 0.5s ease 0.25s;
+}
+
+/* Icons */
+.tab-swipe-overlay ion-icon {
+  position: relative;
+  z-index: 2;
+  display: none;
+  font-size: 24px;
+  color: #ffffff;
+  filter: drop-shadow(0 2px 8px rgba(0,0,0,0.2));
+}
+
+.tab-swipe-overlay.left .icon-next { display: block; }
+.tab-swipe-overlay.right .icon-prev { display: block; }
+
+.tab-swipe-overlay.visible ion-icon {
+  animation: iconPop 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) 0.1s both;
+}
+
+/* Keyframes */
+@keyframes overlayPopIn {
+  0% { transform: translate(-50%, -50%) scale(0.4); opacity: 0; }
+  60% { transform: translate(-50%, -50%) scale(1.1); opacity: 1; }
+  100% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+}
+
+@keyframes iconPop {
+  0% { transform: scale(0.5); opacity: 0; }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+/* Add an explicit exiting state to handle the "hide when red" logic via JS timing or CSS keyframes */
+/* However, based on user request "cuando este en rojo... se ocultara",
+   we can animate opacity to 0 at the end of the red transition */
+
+@keyframes fadeOutWhenRed {
+  0%, 70% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+  100% { opacity: 0; transform: translate(-50%, -50%) scale(1.1); }
+}
+
+body.tab-swipe-progressing .tab-swipe-overlay.visible {
+  /* Trigger fade out animation that syncs with the red color timing */
+  animation: fadeOutWhenRed 0.6s ease forwards;
+  pointer-events: none;
+}
+
+/* Glass Nav Button Styles Copied from Tabs */
+.glass-nav-button {
+  background: transparent;
+  --color: rgba(255, 255, 255, 0.8) !important;
+  --color-selected: #DC2626 !important;
+  transition: none;
+}
+.glass-nav-button .nav-icon {
+  font-size: 20px !important;
+  transition: none;
+  filter: none;
+}
+.glass-nav-button.tab-selected .nav-icon,
+.glass-nav-button.tab-selected-animate .nav-icon {
+  transform: none;
+  filter: none;
+}
