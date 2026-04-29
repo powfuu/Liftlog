@@ -131,7 +131,7 @@ export class HomePage implements OnInit, AfterViewInit, OnDestroy {
 
   ngOnInit(): void {
     const alreadyHydrated = this.store.getState().hydrated;
-    this.isLoading = !alreadyHydrated;
+    this.isLoading = true;
     if (!alreadyHydrated) {
       this.loader.show();
     }
@@ -176,9 +176,12 @@ export class HomePage implements OnInit, AfterViewInit, OnDestroy {
       this.updateTodayData(routines);
       this.restoreQuickDayState();
       this.computeQuickViews();
+      if (this.store.getState().hydrated) {
+        this.isLoading = false;
+      }
     });
     this.store.select(s => s.hydrated).pipe(auditTime(60), distinctUntilChanged()).subscribe(h => {
-      this.isLoading = !h;
+      if (!h) { this.isLoading = true; }
       if (h) {
         this.loader.hide();
         if (!this.routinesStaggerTimer) {

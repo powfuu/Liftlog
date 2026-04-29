@@ -12,6 +12,8 @@ export class NotificationService {
   private store = inject(StoreService);
   private i18n = inject(TranslationService);
   private ln: any = null;
+  private readonly NOTIF_HOUR_KEY = 'notification_hour';
+  private readonly NOTIF_MINUTE_KEY = 'notification_minute';
 
   private async plugin() {
     if (this.ln) return this.ln;
@@ -72,6 +74,50 @@ export class NotificationService {
     } catch { return new Date(); }
   }
 
+  async getNotificationHour(): Promise<number> {
+    try {
+      const { value } = await Preferences.get({ key: this.NOTIF_HOUR_KEY });
+      if (value !== null && value !== undefined) {
+        const h = parseInt(value, 10);
+        if (!isNaN(h) && h >= 0 && h <= 23) return h;
+      }
+    } catch {}
+    return 12;
+  }
+
+  async getNotificationMinute(): Promise<number> {
+    try {
+      const { value } = await Preferences.get({ key: this.NOTIF_MINUTE_KEY });
+      if (value !== null && value !== undefined) {
+        const m = parseInt(value, 10);
+        if (!isNaN(m) && m >= 0 && m <= 59) return m;
+      }
+    } catch {}
+    return 0;
+  }
+
+  async setNotificationTime(hour: number, minute: number): Promise<void> {
+    const oldHour = await this.getNotificationHour();
+    await Preferences.set({ key: this.NOTIF_HOUR_KEY, value: String(hour) });
+    await Preferences.set({ key: this.NOTIF_MINUTE_KEY, value: String(minute) });
+    if (oldHour !== hour) {
+      await this.cancelTrainingNotifs(oldHour, 16);
+    }
+    await this.scheduleDaysAhead(14);
+  }
+
+  private async cancelTrainingNotifs(hour: number, days: number) {
+    const ln = await this.plugin();
+    if (!ln) return;
+    const now = new Date();
+    const ids: { id: number }[] = [];
+    for (let i = 0; i <= days; i++) {
+      const dt = new Date(now.getFullYear(), now.getMonth(), now.getDate() + i);
+      ids.push({ id: Number(`${hour}${dt.getMonth() + 1}${dt.getDate()}`) });
+    }
+    try { await ln.cancel({ notifications: ids }); } catch {}
+  }
+
   async scheduleDaysAhead(days: number) {
     const ln = await this.plugin();
     if (!ln) return;
@@ -95,6 +141,8 @@ export class NotificationService {
       const dn = date.toLocaleString('en-US', { weekday: 'long' });
       return (routines||[]).some((r: any) => ((r?.frequency === 'daily') || ((r.days||[]).includes(dn))) && (!r.programName || activePrograms.has(r.programName)));
     };
+    const hour = await this.getNotificationHour();
+    const minute = await this.getNotificationMinute();
     const notifications: any[] = [];
     const now = new Date();
     const end = new Date(now.getFullYear(), now.getMonth(), now.getDate() + days);
@@ -104,10 +152,10 @@ export class NotificationService {
       const us = this.toUS(dt);
       const trained = (await this.storage.getWorkoutTotalDurationLocal(us)) > 0;
       if (!trained && hasForDay(dt)) {
-        const at = this.atTime(dt, 12, 0);
+        const at = this.atTime(dt, hour, minute);
         if (at.getTime() <= now.getTime()) continue;
         notifications.push({
-          id: Number(`12${dt.getMonth()+1}${dt.getDate()}`),
+          id: Number(`${hour}${dt.getMonth()+1}${dt.getDate()}`),
           title: this.i18n.getCurrentLang?.() === 'es' ? '¡Día de Entrenamiento!' : 'Training Day!',
           body: this.i18n.getCurrentLang?.() === 'es' ? 'Prepárate bien hoy 💪' : 'Get ready today 💪',
           schedule: { at, allowWhileIdle: true },
@@ -117,7 +165,7 @@ export class NotificationService {
           channelId: Capacitor.getPlatform() === 'android' ? 'training' : undefined
         });
       } else {
-        try { await ln.cancel({ notifications: [{ id: Number(`12${dt.getMonth()+1}${dt.getDate()}`) }] }); } catch {}
+        try { await ln.cancel({ notifications: [{ id: Number(`${hour}${dt.getMonth()+1}${dt.getDate()}`) }] }); } catch {}
       }
     }
     if (notifications.length) {

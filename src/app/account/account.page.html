@@ -5,8 +5,8 @@
     <span>{{ 'account.google_info' | translate }}</span>
   </div>
   <div class="account-card stagger-load">
-    <button type="button" class="theme-btn theme-toggle" (click)="toggleTheme()" [attr.aria-label]="theme==='dark' ? 'Dark mode' : 'Light mode'">
-      <ion-icon [name]="theme==='dark' ? 'moon' : 'sunny'"></ion-icon>
+    <button type="button" class="theme-btn theme-toggle" (click)="openSettings()" aria-label="Settings">
+      <ion-icon name="settings-outline"></ion-icon>
     </button>
     <div class="profile-block">
       <div class="avatar" [class.has-img]="!!avatarUrl">
@@ -15,51 +15,21 @@
       </div>
       <div class="name">{{ displayName || '-' }}</div>
       <div class="email">{{ email || '-' }}</div>
-    </div>
-
-    <div class="prefs lang-pref">
-      <div class="label">{{ 'account.language_label' | translate }}</div>
-      <div class="lang-options" role="group" [attr.aria-label]="('onboarding.select_lang' | translate)">
-        <button type="button" class="lang-option" [class.selected]="language==='en'" (click)="setLanguage('en')" aria-pressed="{{language==='en'}}">
-          <ion-icon name="globe"></ion-icon>
-          <span>English</span>
-          <span class="code">EN</span>
-        </button>
-        <button type="button" class="lang-option" [class.selected]="language==='es'" (click)="setLanguage('es')" aria-pressed="{{language==='es'}}">
-          <ion-icon name="globe"></ion-icon>
-          <span>Español</span>
-          <span class="code">ES</span>
-        </button>
-        <button type="button" class="lang-option" [class.selected]="language==='de'" (click)="setLanguage('de')" aria-pressed="{{language==='de'}}">
-          <ion-icon name="globe"></ion-icon>
-          <span>Deutsch</span>
-          <span class="code">DE</span>
-        </button>
-        <button type="button" class="lang-option" [class.selected]="language==='ko'" (click)="setLanguage('ko')" aria-pressed="{{language==='ko'}}">
-          <ion-icon name="globe"></ion-icon>
-          <span>한국어</span>
-          <span class="code">KO</span>
-        </button>
-      </div>
-    </div>
-
-    <!-- Coach Mode Selector -->
-    <div class="prefs coach-mode-section">
-      <div class="label">{{ 'account.mode_label' | translate }}</div>
-      <div style="margin-top: 4px;" class="lang-options" role="group" aria-label="Tipo de cuenta">
-        <button type="button" class="lang-option" [class.selected]="!isCoachMode" (click)="selectMode('personal')" aria-pressed="{{!isCoachMode}}">
-          <ion-icon name="person"></ion-icon>
-          <span>{{ 'account.mode_personal' | translate }}</span>
-          <span class="code">PR</span>
-        </button>
-        <button type="button" class="lang-option" [class.selected]="isCoachMode" (click)="selectMode('coach')" aria-pressed="{{isCoachMode}}">
-          <ion-icon name="people"></ion-icon>
-          <span>{{ 'account.mode_coach' | translate }}</span>
-          <span class="code">CO</span>
-        </button>
-      </div>
-      <div class="coach-mode-hint" style="color:#9ca3af; display:flex; align-items:center; justify-content:center; gap:8px; margin-top:12px; text-align:center;">
-        <span>{{ 'account.coach_mode_hint' | translate }}</span>
+      <div class="stats-row">
+        <div class="stat-item">
+          <span class="stat-value">{{ statsPrograms }}</span>
+          <span class="stat-label">{{ 'account.stat_programs' | translate }}</span>
+        </div>
+        <div class="stat-divider"></div>
+        <div class="stat-item">
+          <span class="stat-value">{{ statsRoutines }}</span>
+          <span class="stat-label">{{ 'account.stat_routines' | translate }}</span>
+        </div>
+        <div class="stat-divider"></div>
+        <div class="stat-item">
+          <span class="stat-value">{{ statsExercises }}</span>
+          <span class="stat-label">{{ 'account.stat_exercises' | translate }}</span>
+        </div>
       </div>
     </div>
 

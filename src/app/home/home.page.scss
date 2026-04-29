@@ -2786,41 +2786,52 @@
 .loading-skeletons {
   padding: 12px 16px;
 }
-.sk-header {
+.sk-empty-card {
   display: flex;
-  gap: 10px;
-  margin-bottom: 14px;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  padding: 28px 20px;
+  background: rgba(0, 0, 0, 0.10);
+  border-radius: 24px;
+  margin-top: 70px;
+  max-width: 92vw;
+  margin-left: auto;
+  margin-right: auto;
 }
-.sk-pill {
-  height: 18px;
-  width: 120px;
+.sk-orb {
+  width: 92px;
+  height: 92px;
   border-radius: 999px;
   background: linear-gradient(
     90deg,
-    rgba(255, 53, 71, 0.15) 0%,
-    rgba(255, 53, 71, 0.35) 50%,
-    rgba(255, 53, 71, 0.15) 100%
-  );
-  background-size: 200% 100%;
-  animation: sk-shimmer 1200ms ease-in-out infinite;
-}
-.sk-list {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-.sk-card {
-  height: 92px;
-  border-radius: 16px;
-  background: linear-gradient(
-    90deg,
-    rgba(255, 53, 71, 0.12) 0%,
-    rgba(255, 53, 71, 0.28) 50%,
-    rgba(255, 53, 71, 0.12) 100%
+    rgba(220, 38, 38, 0.18) 0%,
+    rgba(220, 38, 38, 0.40) 50%,
+    rgba(220, 38, 38, 0.18) 100%
   );
   background-size: 200% 100%;
   animation: sk-shimmer 1400ms ease-in-out infinite;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+}
+.sk-line {
+  border-radius: 10px;
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0.06) 0%,
+    rgba(255, 255, 255, 0.16) 50%,
+    rgba(255, 255, 255, 0.06) 100%
+  );
+  background-size: 200% 100%;
+  animation: sk-shimmer 1400ms ease-in-out infinite;
+}
+.sk-title {
+  width: 190px;
+  height: 20px;
+}
+.sk-sub {
+  width: 130px;
+  height: 13px;
+  animation-delay: 180ms;
+  opacity: 0.7;
 }
 
 @keyframes sk-shimmer {

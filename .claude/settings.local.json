@@ -9,7 +9,12 @@
       "Bash(sed -n '60,84p' /Users/everit/Desktop/dev/Liftlog/Liftlog/src/app/app.component.ts)",
       "Bash(sed -n '116,135p' /Users/everit/Desktop/dev/Liftlog/Liftlog/src/app/app.component.ts)",
       "Bash(xargs ls *)",
-      "Bash(python3 *)"
+      "Bash(python3 *)",
+      "Bash(npx ng *)",
+      "Bash(grep -n \"store.select\\\\|state\\\\$.value\\\\|select\\(s =>\" /Users/everit/Desktop/dev/Liftlog/Liftlog/src/app/services/store.service.ts)",
+      "Bash(grep -n \"select\\\\|state\\\\$\" /Users/everit/Desktop/dev/Liftlog/Liftlog/src/app/services/store.service.ts)",
+      "Bash(npx tsc *)",
+      "Bash(grep -n \"getState\\\\$\\\\|BehaviorSubject\\\\|state\\\\$\\\\|loadData\\\\|initialized\" /Users/everit/Desktop/dev/Liftlog/Liftlog/src/app/services/store.service.ts)"
     ]
   }
 }

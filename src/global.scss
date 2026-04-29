@@ -132,6 +132,8 @@
   --liftlog-option-bg: rgba(255, 255, 255, 0.08);
   --liftlog-option-border: rgba(255, 255, 255, 0.20);
   --liftlog-option-text: #e5e7eb;
+  --liftlog-stats-bg: rgba(0, 0, 0, 0.28);
+  --liftlog-stats-border: rgba(255, 255, 255, 0.10);
 
   --liftlog-header-bg: linear-gradient(135deg, rgb(73, 23, 23), rgb(20, 20, 20));
   --liftlog-header-shadow: 0 1px 28px rgba(0, 0, 0, 0.35);
@@ -173,6 +175,8 @@
   --liftlog-option-bg: rgba(255, 255, 255, 0.92);
   --liftlog-option-border: rgba(17, 24, 39, 0.10);
   --liftlog-option-text: #0b0b0c;
+  --liftlog-stats-bg: rgba(0, 0, 0, 0.06);
+  --liftlog-stats-border: rgba(17, 24, 39, 0.12);
 
   --liftlog-header-bg: linear-gradient(135deg, rgba(220, 38, 38, 0.14), rgba(255, 255, 255, 0.95));
   --liftlog-header-shadow: 0 14px 30px rgba(0, 0, 0, 0.08);
@@ -186,9 +190,9 @@
   --liftlog-modal-border: rgba(17, 24, 39, 0.10);
   --liftlog-popover-bg: rgba(255, 255, 255, 0.98);
   --liftlog-popover-text: #0b0b0c;
-  --liftlog-userid-bg: rgba(152, 153, 155, 0.62);
-  --liftlog-userid-border: rgba(17, 24, 39, 0.22);
-  --liftlog-userid-text: #ffffff;
+  --liftlog-userid-bg: rgba(17, 24, 39, 0.06);
+  --liftlog-userid-border: rgba(17, 24, 39, 0.15);
+  --liftlog-userid-text: #0b0b0c;
 
   --ion-background-color: var(--liftlog-surface);
   --ion-text-color: var(--liftlog-text-primary);
@@ -1096,6 +1100,24 @@ ion-button {
 }
 
 .routine-modal-fullscreen .modal-wrapper {
+  background: transparent !important;
+  border: none;
+  border-radius: 0;
+  box-shadow: none !important;
+}
+
+/* Settings Modal Fullscreen */
+.settings-modal-fullscreen {
+  --height: 100%;
+  --width: 100%;
+  --max-width: 100%;
+  --max-height: 100%;
+  --border-radius: 0;
+  --box-shadow: none;
+  --background: transparent;
+}
+
+.settings-modal-fullscreen .modal-wrapper {
   background: transparent !important;
   border: none;
   border-radius: 0;

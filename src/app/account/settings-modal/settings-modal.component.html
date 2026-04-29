@@ -1,0 +1,147 @@
+<div class="modal-container" [class]="'animation-' + animationState">
+  <div class="modal-header sticky top-0 z-50">
+    <div class="px-6 py-4">
+      <div class="modal-notch">
+        <div class="notch-title">
+          <ion-icon name="settings" class="modal-title-icon"></ion-icon>
+          <span>{{ 'account.settings' | translate }}</span>
+        </div>
+        <div class="notch-actions">
+          <button class="notch-action" (click)="dismiss()" aria-label="Close">
+            <ion-icon name="close"></ion-icon>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-body modal-enter">
+
+    <!-- Theme Section -->
+    <div class="settings-card tab-enter" style="animation-delay: 60ms">
+      <div class="settings-card-header">
+        <ion-icon name="contrast-outline" class="section-icon"></ion-icon>
+        <span class="section-label">{{ 'account.theme_label' | translate }}</span>
+      </div>
+      <div class="options-row">
+        <button type="button" class="option-btn" [class.selected]="theme === 'light'" (click)="setTheme('light')">
+          <ion-icon name="sunny"></ion-icon>
+          <span>{{ 'account.theme_light' | translate }}</span>
+        </button>
+        <button type="button" class="option-btn" [class.selected]="theme === 'dark'" (click)="setTheme('dark')">
+          <ion-icon name="moon"></ion-icon>
+          <span>{{ 'account.theme_dark' | translate }}</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Language Section -->
+    <div class="settings-card tab-enter" style="animation-delay: 130ms">
+      <div class="settings-card-header">
+        <ion-icon name="globe" class="section-icon"></ion-icon>
+        <span class="section-label">{{ 'account.language_label' | translate }}</span>
+      </div>
+      <div class="options-grid" role="group">
+        <button type="button" class="option-btn" [class.selected]="language === 'en'" (click)="setLanguage('en')" aria-pressed="{{ language === 'en' }}">
+          <ion-icon name="globe"></ion-icon>
+          <span>English</span>
+          <span class="code">EN</span>
+        </button>
+        <button type="button" class="option-btn" [class.selected]="language === 'es'" (click)="setLanguage('es')" aria-pressed="{{ language === 'es' }}">
+          <ion-icon name="globe"></ion-icon>
+          <span>Español</span>
+          <span class="code">ES</span>
+        </button>
+        <button type="button" class="option-btn" [class.selected]="language === 'de'" (click)="setLanguage('de')" aria-pressed="{{ language === 'de' }}">
+          <ion-icon name="globe"></ion-icon>
+          <span>Deutsch</span>
+          <span class="code">DE</span>
+        </button>
+        <button type="button" class="option-btn" [class.selected]="language === 'ko'" (click)="setLanguage('ko')" aria-pressed="{{ language === 'ko' }}">
+          <ion-icon name="globe"></ion-icon>
+          <span>한국어</span>
+          <span class="code">KO</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Account Type Section -->
+    <div class="settings-card tab-enter" style="animation-delay: 200ms">
+      <div class="settings-card-header">
+        <ion-icon name="people-circle-outline" class="section-icon"></ion-icon>
+        <span class="section-label">{{ 'account.mode_label' | translate }}</span>
+      </div>
+      <div class="options-row" role="group">
+        <button type="button" class="option-btn" [class.selected]="!isCoachMode" (click)="selectMode('personal')" aria-pressed="{{ !isCoachMode }}">
+          <ion-icon name="person"></ion-icon>
+          <span>{{ 'account.mode_personal' | translate }}</span>
+          <span class="code">PR</span>
+        </button>
+        <button type="button" class="option-btn" [class.selected]="isCoachMode" (click)="selectMode('coach')" aria-pressed="{{ isCoachMode }}">
+          <ion-icon name="people"></ion-icon>
+          <span>{{ 'account.mode_coach' | translate }}</span>
+          <span class="code">CO</span>
+        </button>
+      </div>
+      <p class="mode-hint">{{ 'account.coach_mode_hint' | translate }}</p>
+    </div>
+
+    <!-- Notification Time Section -->
+    <div class="settings-card tab-enter" style="animation-delay: 270ms">
+      <div class="settings-card-header">
+        <ion-icon name="notifications" class="section-icon"></ion-icon>
+        <span class="section-label">{{ 'account.notif_time_label' | translate }}</span>
+      </div>
+      <div class="notif-info-note">
+        <ion-icon name="information-circle"></ion-icon>
+        <span>{{ 'account.notif_time_info' | translate }}</span>
+      </div>
+      <div class="time-picker">
+        <!-- Hour column -->
+        <div class="picker-col">
+          <button class="picker-arrow" type="button" (click)="prevHour()">
+            <ion-icon name="chevron-up-outline"></ion-icon>
+          </button>
+          <div class="picker-window"
+               [class.anim-up]="pickerHourDir === 'up'"
+               [class.anim-down]="pickerHourDir === 'down'"
+               (touchstart)="onPickerTouchStart($event)"
+               (touchmove)="onPickerTouchMove($event, 'hour')"
+               (touchend)="onPickerTouchEnd($event, 'hour')">
+            <div class="picker-item faded">{{ padHour(prevHourVal) }}</div>
+            <div class="picker-item active">{{ padHour(notifHour) }}</div>
+            <div class="picker-item faded">{{ padHour(nextHourVal) }}</div>
+          </div>
+          <button class="picker-arrow" type="button" (click)="nextHour()">
+            <ion-icon name="chevron-down-outline"></ion-icon>
+          </button>
+        </div>
+        <div class="picker-sep">:</div>
+        <!-- Minute column -->
+        <div class="picker-col">
+          <button class="picker-arrow" type="button" (click)="prevMinute()">
+            <ion-icon name="chevron-up-outline"></ion-icon>
+          </button>
+          <div class="picker-window"
+               [class.anim-up]="pickerMinuteDir === 'up'"
+               [class.anim-down]="pickerMinuteDir === 'down'"
+               (touchstart)="onPickerTouchStart($event)"
+               (touchmove)="onPickerTouchMove($event, 'minute')"
+               (touchend)="onPickerTouchEnd($event, 'minute')">
+            <div class="picker-item faded">{{ padMinute(prevMinuteVal) }}</div>
+            <div class="picker-item active">{{ padMinute(notifMinute) }}</div>
+            <div class="picker-item faded">{{ padMinute(nextMinuteVal) }}</div>
+          </div>
+          <button class="picker-arrow" type="button" (click)="nextMinute()">
+            <ion-icon name="chevron-down-outline"></ion-icon>
+          </button>
+        </div>
+      </div>
+      <p class="notif-selected-hint">
+        <ion-icon name="notifications"></ion-icon>
+        {{ formatTime(notifHour, notifMinute) }}
+      </p>
+    </div>
+
+  </div>
+</div>

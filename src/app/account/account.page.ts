@@ -1,56 +1,52 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnInit, OnDestroy, inject } from '@angular/core';
+import { Subscription } from 'rxjs';
 import { Clipboard } from '@capacitor/clipboard';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { IonContent, IonIcon, IonToggle } from '@ionic/angular/standalone';
+import { IonContent, IonIcon, ModalController } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
-import { copyOutline, checkmark, helpCircle, person, people, globe, personCircle, sunny, moon } from 'ionicons/icons';
+import { copyOutline, checkmark, helpCircle, personCircle, settingsOutline } from 'ionicons/icons';
 import { SupabaseService } from '../services/supabase.service';
-import { TranslationService } from '../services/translation.service';
-import { StoreService } from '../services/store.service';
 import { LoaderService } from '../services/loader.service';
 import { TranslatePipe } from '../pipes/translate.pipe';
 import { CoachModeService } from '../services/coach-mode.service';
-import { ThemeService } from '../services/theme.service';
+import { StoreService } from '../services/store.service';
+import { SettingsModalComponent } from './settings-modal/settings-modal.component';
 
 @Component({
   selector: 'app-account',
   templateUrl: './account.page.html',
   styleUrls: ['./account.page.scss'],
   standalone: true,
-  imports: [CommonModule, FormsModule, IonContent, IonIcon, IonToggle, TranslatePipe]
+  imports: [CommonModule, FormsModule, IonContent, IonIcon, TranslatePipe]
 })
-export class AccountPage implements OnInit {
+export class AccountPage implements OnInit, OnDestroy {
   displayName = '';
   email = '';
-  language: 'es'|'en'|'de'|'ko' = 'es';
   avatarUrl = '';
   avatarInitials = '';
-  saving = false;
-  isCoachMode = false;
   userId7Digit: string | null = null;
   copiedUserId = false;
-  theme: 'dark' | 'light' = 'dark';
+  statsPrograms = 0;
+  statsRoutines = 0;
+  statsExercises = 0;
   private authUnsub: (() => void) | null = null;
+  private statsSub: Subscription | null = null;
 
   private supabase = inject(SupabaseService);
-  private translations = inject(TranslationService);
   private store = inject(StoreService);
   private loader = inject(LoaderService);
   private coachModeService = inject(CoachModeService);
-  private themeService = inject(ThemeService);
+  private modalController = inject(ModalController);
 
-  constructor() { addIcons({ copyOutline, checkmark, helpCircle, person, people, globe, personCircle, sunny, moon }); }
+  constructor() { addIcons({ copyOutline, checkmark, helpCircle, personCircle, settingsOutline }); }
 
   async ngOnInit() {
     this.loader.show();
     setTimeout(() => { try { this.loader.hide(); } catch {} }, 1000);
-    // Initialize coach mode instantly from current state
-    this.isCoachMode = this.coachModeService.isCoachMode;
-    try { this.theme = this.themeService.getCurrentTheme(); } catch { this.theme = 'dark'; }
-
     await this.loadAvatar();
     await this.loadCoachModeData();
+    this.loadStats();
     if (!this.userId7Digit) {
       try {
         const id7 = await this.coachModeService.ensureUserId7Digit();
@@ -65,7 +61,6 @@ export class AccountPage implements OnInit {
       const email = user?.email || '';
       this.email = email;
       this.displayName = name || (email ? email.split('@')[0] : '');
-      this.language = this.translations.getCurrentLang();
     } catch {}
     try {
       const sub = client.auth.onAuthStateChange((_evt, _session) => {
@@ -96,7 +91,6 @@ export class AccountPage implements OnInit {
     try {
       const profile = await this.coachModeService.getUserProfile();
       if (profile) {
-        this.isCoachMode = profile.mode === 'coach';
         this.userId7Digit = profile.user_id_7digit;
         if (!this.userId7Digit) {
           const id7 = await this.coachModeService.ensureUserId7Digit();
@@ -105,37 +99,6 @@ export class AccountPage implements OnInit {
       }
     } catch (error) {
       console.error('Error loading coach mode data:', error);
-    }
-  }
-
-  async onCoachModeToggle(event: any) {
-    const enabled = event.detail.checked;
-    this.saving = true;
-    try {
-      await this.coachModeService.setCoachMode(enabled);
-      this.isCoachMode = enabled;
-    } catch (error) {
-      console.error('Error updating coach mode:', error);
-      // Revert toggle if error
-      event.detail.checked = !enabled;
-    } finally {
-      this.saving = false;
-    }
-  }
-
-  async selectMode(mode: 'personal'|'coach') {
-    const enabled = mode === 'coach';
-    if (this.isCoachMode === enabled) return;
-    this.saving = true;
-    try { this.loader.show(); } catch {}
-    try {
-      await this.coachModeService.setCoachMode(enabled);
-      this.isCoachMode = enabled;
-    } catch (error) {
-      console.error('Error updating coach mode:', error);
-    } finally {
-      this.saving = false;
-      try { this.loader.hide(); } catch {}
     }
   }
 
@@ -187,31 +150,28 @@ export class AccountPage implements OnInit {
   }
 
 
-  async setLanguage(lang: 'es'|'en'|'de'|'ko') {
-    this.language = lang;
-    try {
-      this.store.setLanguage(lang);
-      await this.supabase.upsertProfile({ language: lang });
-    } catch {}
+  private loadStats() {
+    this.statsSub = this.store.getState$().subscribe(state => {
+      this.statsPrograms = (state.programs || []).length;
+      this.statsRoutines = (state.routines || []).length;
+      this.statsExercises = (state.exercises || []).length;
+    });
   }
 
   async logout() {
     await this.supabase.logoutAndReload();
   }
 
-  async setTheme(theme: 'dark' | 'light') {
-    this.theme = theme;
-    await this.themeService.setTheme(theme);
-  }
-
-  async toggleTheme() {
-    try {
-      const next = await this.themeService.toggleTheme();
-      this.theme = next;
-    } catch {}
+  async openSettings() {
+    const modal = await this.modalController.create({
+      component: SettingsModalComponent,
+      cssClass: 'settings-modal-fullscreen',
+    });
+    await modal.present();
   }
 
   ngOnDestroy(): void {
     try { this.authUnsub && this.authUnsub(); } catch {}
+    try { this.statsSub?.unsubscribe(); } catch {}
   }
 }
