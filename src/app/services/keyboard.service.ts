@@ -6,8 +6,10 @@ import { Capacitor } from '@capacitor/core';
 export class KeyboardService {
   private listeners: Array<{ remove: () => void }> = [];
   private isOpen = false;
+  private originalWindowHeight = 0;
 
   async init() {
+    this.originalWindowHeight = window.innerHeight;
     if (!Capacitor.isNativePlatform()) {
       this.attachImmediateFallbacks();
       return;
@@ -49,13 +51,18 @@ export class KeyboardService {
 
   private markOpen(open: boolean) {
     this.isOpen = open;
-    const cls = 'keyboard-open';
     const body = document.body;
     if (!body) return;
     if (open) {
-      if (!body.classList.contains(cls)) body.classList.add(cls);
+      if (!body.classList.contains('keyboard-open')) body.classList.add('keyboard-open');
+      // Detect if the viewport was resized by the keyboard (Android behaviour).
+      // When the WebView shrinks, fixed elements already sit above the keyboard
+      // at bottom:0, so we must NOT offset them by --kb-height again.
+      const viewportShrank = window.innerHeight < this.originalWindowHeight - 50;
+      body.classList.toggle('kb-viewport-resized', viewportShrank);
     } else {
-      body.classList.remove(cls);
+      body.classList.remove('keyboard-open');
+      body.classList.remove('kb-viewport-resized');
     }
   }
 

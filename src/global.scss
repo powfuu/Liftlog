@@ -1870,6 +1870,15 @@ body.keyboard-open .keyboard-accessory-bar .keyboard-close-btn {
   margin: 0;
 }
 
+/* Android: viewport is resized by the keyboard, so fixed elements already sit
+   at the keyboard edge when bottom:0. Override the --kb-height-based formula. */
+body.kb-viewport-resized .keyboard-accessory-bar {
+  bottom: 4px;
+}
+body.kb-viewport-resized .keyboard-close-btn {
+  bottom: 4px;
+}
+
 /* Common chip text truncation */
 .glass-chip span, .routine-tag, .program-chip, .title-chip { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 100%; }
 
