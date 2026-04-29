@@ -1885,3 +1885,13 @@ body.kb-viewport-resized .keyboard-close-btn {
 .alert-message { font-size: 14.5px !important; }
 .alert-title { font-size: 18.5px !important; }
 .alert-button { font-size: 15px !important; }
+
+/* iOS re-evaluates CSS animations when the app resumes from background,
+   restarting entrance animations from their `from` keyframe (opacity:0).
+   Set duration to 0.001ms so every animation completes instantly —
+   elements jump to their `to` state and stay there (animation-fill-mode).
+   Using 0.001ms instead of `none` avoids restarting when the class is removed. */
+body.instant-resume * {
+  animation-duration: 0.001ms !important;
+  animation-delay: 0s !important;
+}

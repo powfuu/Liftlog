@@ -130,8 +130,11 @@ export class HomePage implements OnInit, AfterViewInit, OnDestroy {
   }
 
   ngOnInit(): void {
-    this.isLoading = true;
-    this.loader.show();
+    const alreadyHydrated = this.store.getState().hydrated;
+    this.isLoading = !alreadyHydrated;
+    if (!alreadyHydrated) {
+      this.loader.show();
+    }
     this.translationService.lang$.subscribe(lang => {
       this.selectedLanguage = lang;
       this.updateDateLabels();

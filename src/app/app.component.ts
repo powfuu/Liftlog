@@ -9,6 +9,7 @@ import { StoreService } from './services/store.service';
 import { KeyboardService } from './services/keyboard.service';
 import { SwipeHintService } from './services/swipe-hint.service';
 import { Keyboard } from '@capacitor/keyboard';
+import { App } from '@capacitor/app';
 import { addIcons } from 'ionicons';
 import { chevronDown, chevronBack, chevronForward } from 'ionicons/icons';
 import { Capacitor } from '@capacitor/core';
@@ -63,6 +64,17 @@ export class AppComponent implements OnInit, AfterViewInit {
     window.addEventListener('focusout', this.handleFocusOut.bind(this));
     window.addEventListener('input', this.handleInput.bind(this));
     window.addEventListener('ionInput', this.handleInput.bind(this)); // Handle Ionic inputs
+
+    // visibilitychange fires synchronously with the repaint when the app resumes,
+    // before the Capacitor bridge delivers appStateChange. Using it here catches
+    // the iOS animation-restart bug (animations reset to opacity:0 on unfreeze)
+    // as early as possible.
+    document.addEventListener('visibilitychange', () => {
+      if (document.visibilityState === 'visible') {
+        document.body.classList.add('instant-resume');
+        requestAnimationFrame(() => document.body.classList.remove('instant-resume'));
+      }
+    });
   }
 
   handleFocusIn(e: Event) {
@@ -111,6 +123,21 @@ export class AppComponent implements OnInit, AfterViewInit {
 
       await this.decideStart();
       await this.notifications.init();
+
+      if (Capacitor.isNativePlatform()) {
+        App.addListener('appStateChange', ({ isActive }) => {
+          if (isActive) {
+            // iOS re-evaluates CSS animations on resume, restarting entrance
+            // animations from opacity:0. Snap them to their final state for one frame.
+            document.body.classList.add('instant-resume');
+            requestAnimationFrame(() => document.body.classList.remove('instant-resume'));
+            if (this.store.getState().hydrated) {
+              this.ngZone.run(() => this.loader.hide());
+            }
+          }
+        });
+      }
+
       this.supabase.getClient().auth.onAuthStateChange(async (event, session) => {
         // Handle explicit auth changes if needed
         // But for route protection, Guards are better

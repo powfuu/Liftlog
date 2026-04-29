@@ -1,7 +1,15 @@
 {
   "permissions": {
     "allow": [
-      "Bash(xargs cat *)"
+      "Bash(xargs cat *)",
+      "Bash(sed -n '68,72p' /Users/everit/Desktop/dev/Liftlog/Liftlog/src/index.html)",
+      "Bash(sed -n '1,12p' /Users/everit/Desktop/dev/Liftlog/Liftlog/src/app/components/global-loader/global-loader.component.scss)",
+      "Bash(sed -n '132,140p' /Users/everit/Desktop/dev/Liftlog/Liftlog/src/app/home/home.page.ts)",
+      "Bash(sed -n '113,130p' /Users/everit/Desktop/dev/Liftlog/Liftlog/src/app/app.component.ts)",
+      "Bash(sed -n '60,84p' /Users/everit/Desktop/dev/Liftlog/Liftlog/src/app/app.component.ts)",
+      "Bash(sed -n '116,135p' /Users/everit/Desktop/dev/Liftlog/Liftlog/src/app/app.component.ts)",
+      "Bash(xargs ls *)",
+      "Bash(python3 *)"
     ]
   }
 }
