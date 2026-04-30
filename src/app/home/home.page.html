@@ -54,19 +54,20 @@
             <span>{{ areAllSelectableSelected() ? ('common.uncheck_all' | translate) : ('common.check_all' | translate) }}</span>
           </button>
           <button class="program-filter-btn" (click)="showProgramFilter = !showProgramFilter" [attr.aria-expanded]="showProgramFilter" aria-controls="program-menu">
-            <ion-icon *ngIf="selectedProgramFilter !== 'all'" name="funnel"></ion-icon>
-            <ion-icon *ngIf="selectedProgramFilter === 'all'" name="apps"></ion-icon>
-            <span [class.text-red]="selectedProgramFilter!=='all'">{{ selectedProgramFilter === 'all' ? ('common.all_programs' | translate) : selectedProgramFilter }}</span>
+            <ion-icon *ngIf="selectedProgramFilters.size > 0" name="funnel"></ion-icon>
+            <ion-icon *ngIf="selectedProgramFilters.size === 0" name="apps"></ion-icon>
+            <span [class.text-red]="selectedProgramFilters.size > 0">{{ getProgramFilterLabel() }}</span>
           </button>
         </div>
       </div>
       <div *ngIf="showProgramFilter" id="program-menu" class="program-menu enter-fade-up">
-        <button class="program-option" (click)="setProgramFilter('all')">
-          <ion-icon name="apps"></ion-icon>
+        <button class="program-option" [class.selected]="selectedProgramFilters.size === 0" (click)="setProgramFilter('all')">
+          <ion-icon *ngIf="selectedProgramFilters.size === 0" name="checkmark"></ion-icon>
+          <ion-icon *ngIf="selectedProgramFilters.size > 0" name="apps"></ion-icon>
           <span>{{ 'common.all_programs' | translate }}</span>
         </button>
-        <button *ngFor="let p of getProgramsToday(); let i = index" class="program-option" [class.selected]="selectedProgramFilter===p" (click)="setProgramFilter(p)" [style.animationDelay]="(i * 60) + 'ms'" [attr.aria-selected]="selectedProgramFilter===p">
-          <ion-icon *ngIf="selectedProgramFilter===p" name="checkmark"></ion-icon>
+        <button *ngFor="let p of getProgramsToday(); let i = index" class="program-option" [class.selected]="selectedProgramFilters.has(p)" (click)="setProgramFilter(p)" [style.animationDelay]="(i * 60) + 'ms'" [attr.aria-selected]="selectedProgramFilters.has(p)">
+          <ion-icon *ngIf="selectedProgramFilters.has(p)" name="checkmark"></ion-icon>
           <span>{{ p }}</span>
         </button>
       </div>

@@ -47,6 +47,7 @@ export class TabsPage implements OnDestroy, AfterViewInit {
     this.coachModeService.coachModeState$.subscribe(state => {
       this.isCoachMode = state.isCoachMode;
       this.updateTabIndices();
+      this.syncTabButton(this.router.url);
     });
   }
 
@@ -114,6 +115,7 @@ export class TabsPage implements OnDestroy, AfterViewInit {
     this.router.events.subscribe(ev => {
       if (ev instanceof NavigationEnd) {
         this.updateTabHistory(this.router.url);
+        this.syncTabButton(this.router.url);
         this.swipeHintService.hide(true);
         document.body.classList.remove('tab-swipe-progressing');
         this.overlayProgressing = false;
@@ -219,6 +221,7 @@ export class TabsPage implements OnDestroy, AfterViewInit {
   private inScrollable = false;
   private androidSafeStart = false;
   private startedAtBottom = false;
+  private urlAtSwipeStart = '';
 
   private detectScrollable(target: EventTarget | null): boolean {
     let el = target as HTMLElement | null;
@@ -268,6 +271,7 @@ export class TabsPage implements OnDestroy, AfterViewInit {
     this.touchStartTime = Date.now();
     this.isSwiping = false;
     this.activePage = this.getActivePageEl();
+    this.urlAtSwipeStart = this.router.url;
 
     if (this.isInTabBar((ev instanceof TouchEvent) ? ev.target : (ev as MouseEvent).target as any)) {
       this.overlayProgressing = false;
@@ -483,7 +487,7 @@ export class TabsPage implements OnDestroy, AfterViewInit {
   }
 
   private navigateLeft() {
-    const urlNow = this.router.url || '';
+    const urlNow = this.urlAtSwipeStart || this.router.url || '';
     if (urlNow.includes('/tabs/programs/routines')) {
       this.zone.run(() => {
         this.router.navigateByUrl('/tabs/programs');
@@ -519,6 +523,28 @@ export class TabsPage implements OnDestroy, AfterViewInit {
         } else {
           if (this.tabs) this.tabs.select(targetTab);
         }
+    });
+  }
+
+  private syncTabButton(url: string) {
+    const tabMappings = [
+      { tab: 'coaching', prefix: '/tabs/coaching' },
+      { tab: 'home', prefix: '/tabs/home' },
+      { tab: 'programs', prefix: '/tabs/programs' },
+      { tab: 'weight', prefix: '/tabs/weight' },
+      { tab: 'tracking', prefix: '/tabs/tracking' },
+      { tab: 'account', prefix: '/tabs/account' },
+    ];
+    requestAnimationFrame(() => {
+      const btns = Array.from(document.querySelectorAll('ion-tab-button[tab]')) as HTMLElement[];
+      for (const btn of btns) {
+        const tab = btn.getAttribute('tab') || '';
+        const mapping = tabMappings.find(m => m.tab === tab);
+        if (!mapping) continue;
+        const isActive = url.includes(mapping.prefix);
+        btn.classList.toggle('tab-selected', isActive);
+        btn.setAttribute('aria-selected', isActive ? 'true' : 'false');
+      }
     });
   }
 

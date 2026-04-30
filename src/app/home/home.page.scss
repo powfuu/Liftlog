@@ -248,6 +248,9 @@
   box-shadow: 0 0 14px rgba(var(--ion-color-primary-rgb), 0.35);
   transform: translateY(-1px);
 }
+.program-option.selected ion-icon {
+  color: var(--ion-color-primary-contrast);
+}
 .program-option:focus-visible {
   outline: none;
   box-shadow: 0 0 0 3px rgba(var(--ion-color-primary-rgb), 0.25);

@@ -46,7 +46,7 @@ export class HomePage implements OnInit, AfterViewInit, OnDestroy {
   showTraining = false;
   trainingInitiated = false;
   showProgramFilter = false;
-  selectedProgramFilter: string = 'all';
+  selectedProgramFilters: Set<string> = new Set();
   panelState: 'entering'|'exiting'|'idle' = 'idle';
   routinesToday: Routine[] = [];
   private scheduledRoutinesToday: Routine[] = [];
@@ -226,16 +226,28 @@ export class HomePage implements OnInit, AfterViewInit, OnDestroy {
     this.gesture.enable();
   }
 
-  onIonViewDidEnter() {
+  ionViewWillEnter() {
+    if (!this.showTraining && this.routinesToday.length === 0) {
+      this.isLoading = true;
+    }
+  }
+
+  async onIonViewDidEnter() {
     try {
       const routines = this.store.getState().routines || [];
       this.allRoutines = Array.isArray(routines) ? routines : [];
       this.restoreQuickDayState();
-      this.updateTodayData(this.allRoutines);
+
+      await this.updateTodayData(this.allRoutines);
       this.computeQuickViews();
       this.checkActiveTraining();
+
+      this.isLoading = false;
       this.cdr.detectChanges();
-    } catch {}
+    } catch {
+      this.isLoading = false;
+      this.cdr.detectChanges();
+    }
   }
 
   ngOnDestroy(): void {
@@ -511,6 +523,8 @@ export class HomePage implements OnInit, AfterViewInit, OnDestroy {
         } catch {}
       }
     }
+    this.showProgramFilter = false;
+    this.selectedProgramFilters = new Set();
     const routines = this.store.getState().routines || [];
     this.updateTodayData(routines);
     this.restoreQuickDayState();
@@ -519,15 +533,33 @@ export class HomePage implements OnInit, AfterViewInit, OnDestroy {
   getDayNumber(d: Date): number { return d.getDate(); }
 
   getScheduledLabel(): string { return this.translationService.translate('common.scheduled'); }
-  setProgramFilter(val: string) { this.selectedProgramFilter = val; }
+  setProgramFilter(val: string) {
+    if (val === 'all') {
+      this.selectedProgramFilters = new Set();
+      this.showProgramFilter = false;
+    } else {
+      if (this.selectedProgramFilters.has(val)) {
+        this.selectedProgramFilters.delete(val);
+      } else {
+        this.selectedProgramFilters.add(val);
+      }
+      this.selectedProgramFilters = new Set(this.selectedProgramFilters);
+    }
+  }
   getProgramsToday(): string[] {
     const set = new Set<string>();
     for (const r of this.routinesToday) { if (r.programName) set.add(r.programName); }
     return Array.from(set);
   }
+  getProgramFilterLabel(): string {
+    if (this.selectedProgramFilters.size === 0) return this.translationService.translate('common.all_programs');
+    const names = Array.from(this.selectedProgramFilters);
+    if (names.length === 1) return names[0];
+    return `${names[0]} +${names.length - 1}`;
+  }
   filteredRoutinesToday(): Routine[] {
-    if (this.selectedProgramFilter === 'all') return this.routinesToday;
-    return this.routinesToday.filter(r => r.programName === this.selectedProgramFilter);
+    if (this.selectedProgramFilters.size === 0) return this.routinesToday;
+    return this.routinesToday.filter(r => r.programName && this.selectedProgramFilters.has(r.programName));
   }
   isRoutineCompleted(id: string): boolean { if (id === 'logged-day') return this.dayCompleted === true; return this.completedRoutineIds.has(id); }
   isJustCompleted(_id: string): boolean { return false; }

@@ -264,7 +264,7 @@
          </div>
          <div class="summary-row">
             <span class="label">{{ 'common.status' | translate }}</span>
-            <span class="value" style="color: #34d399;">{{ 'common.in_progress' | translate }}</span>
+            <span class="value" [style.color]="getDayStatusColor()">{{ getDayStatusLabel() }}</span>
          </div>
          <div class="summary-row">
             <span class="label">{{ 'home.exercises' | translate }}</span>

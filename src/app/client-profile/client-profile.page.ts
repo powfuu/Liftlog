@@ -394,6 +394,18 @@ export class ClientProfilePage implements OnInit, AfterViewInit, OnDestroy {
     return !hasPlan;
   }
 
+  getDayStatusLabel(): string {
+    if (this.isSelectedToday) return this.translationService.translate('common.in_progress');
+    if (this.isPastDay(this.today)) return this.translationService.translate('common.completed');
+    return this.translationService.translate('common.scheduled');
+  }
+
+  getDayStatusColor(): string {
+    if (this.isSelectedToday) return '#34d399';
+    if (this.isPastDay(this.today)) return '#f59e0b';
+    return '#ef4444';
+  }
+
   closeDatePicker() {
     if (this.datePopover) this.datePopover.dismiss();
   }
