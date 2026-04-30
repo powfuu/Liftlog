@@ -227,7 +227,7 @@ export class HomePage implements OnInit, AfterViewInit, OnDestroy {
   }
 
   ionViewWillEnter() {
-    if (!this.showTraining && this.routinesToday.length === 0) {
+    if (!this.showTraining && !this.store.getState().hydrated) {
       this.isLoading = true;
     }
   }
@@ -314,7 +314,7 @@ export class HomePage implements OnInit, AfterViewInit, OnDestroy {
 
       this.showTraining = true;
       this.startTimer(false);
-      this.expandedIds = new Set<string>((this.todayExercises || []).map(ex => ex.exerciseId).filter((id: string) => !!id));
+      this.expandedIds = new Set<string>((this.todayExercises || []).map(ex => this.exKey(ex.exerciseId, (ex as any).__routineId || '')).filter((k: string) => !!k));
       // Note: We cannot easily restore the exact selection state without saving it.
       // For now, we restore the timer view but the user might need to re-select exercises if they were lost.
       // A better approach would be to save 'selectedRoutineIds' in the training state.
@@ -452,24 +452,24 @@ export class HomePage implements OnInit, AfterViewInit, OnDestroy {
     return !hasPlan;
   }
 
-  isExerciseCompleted(id: string): boolean { return !!id && this.completedExerciseIds.has(id); }
+  private exKey(exerciseId: string, routineId?: string): string { return `${exerciseId}:${routineId || ''}`; }
+  isExerciseCompleted(exerciseId: string, routineIdHint?: string): boolean { return !!exerciseId && this.completedExerciseIds.has(this.exKey(exerciseId, routineIdHint)); }
   async completeExercise(exercise: RoutineExercise) {
     const id = exercise?.exerciseId || '';
     if (!id) return;
-    this.completedExerciseIds.add(id);
+    const rid = ((exercise as any).__routineId as string) || this.exerciseRoutineIdMap.get(id) || '';
+    this.completedExerciseIds.add(this.exKey(id, rid));
     exercise.completed = true;
     this.persistExercise(exercise);
-    
+
     if (this.showTraining) {
-      const allIds = (this.todayExercises || []).map(ex => ex.exerciseId).filter((eid: string) => !!eid);
-      const allDone = allIds.length > 0 && allIds.every(eid => this.completedExerciseIds.has(eid));
-      const rid = ((exercise as any).__routineId as string) || this.exerciseRoutineIdMap.get(id) || (() => { const ex = (this.todayExercises || []).find(e => e.exerciseId === id); return (ex ? ((ex as any).__routineId as string) : ''); })();
+      const allDone = (this.todayExercises || []).filter(ex => !!ex.exerciseId).every(ex => this.completedExerciseIds.has(this.exKey(ex.exerciseId, (ex as any).__routineId || '')));
       if (rid) {
-        const routineExIds = (this.todayExercises || []).filter(ex => {
+        const routineExs = (this.todayExercises || []).filter(ex => {
           const reid = ((ex as any).__routineId as string) || this.exerciseRoutineIdMap.get(ex.exerciseId) || '';
           return reid === rid;
-        }).map(ex => ex.exerciseId).filter((eid: string) => !!eid);
-        const routineDone = routineExIds.length > 0 && routineExIds.every(eid => this.completedExerciseIds.has(eid));
+        });
+        const routineDone = routineExs.length > 0 && routineExs.every(ex => this.completedExerciseIds.has(this.exKey(ex.exerciseId, (ex as any).__routineId || '')));
         if (routineDone) {
           this.completedRoutineIds.add(rid);
         }
@@ -483,18 +483,18 @@ export class HomePage implements OnInit, AfterViewInit, OnDestroy {
   repeatExercise(exercise: RoutineExercise) {
     const id = exercise?.exerciseId || '';
     if (!id) return;
-    this.completedExerciseIds.delete(id);
+    const rid = ((exercise as any).__routineId as string) || this.exerciseRoutineIdMap.get(id) || '';
+    this.completedExerciseIds.delete(this.exKey(id, rid));
     exercise.completed = false;
     this.persistExercise(exercise);
-    
+
     if (this.showTraining) {
-      const rid = ((exercise as any).__routineId as string) || this.exerciseRoutineIdMap.get(id) || (() => { const ex = (this.todayExercises || []).find(e => e.exerciseId === id); return (ex ? ((ex as any).__routineId as string) : ''); })();
       if (rid) {
-        const routineExIds = (this.todayExercises || []).filter(ex => {
+        const routineExs = (this.todayExercises || []).filter(ex => {
           const reid = ((ex as any).__routineId as string) || this.exerciseRoutineIdMap.get(ex.exerciseId) || '';
           return reid === rid;
-        }).map(ex => ex.exerciseId).filter((eid: string) => !!eid);
-        const routineDone = routineExIds.length > 0 && routineExIds.every(eid => this.completedExerciseIds.has(eid));
+        });
+        const routineDone = routineExs.length > 0 && routineExs.every(ex => this.completedExerciseIds.has(this.exKey(ex.exerciseId, (ex as any).__routineId || '')));
         if (!routineDone && this.completedRoutineIds.has(rid)) {
           this.completedRoutineIds.delete(rid);
         }
@@ -891,7 +891,7 @@ export class HomePage implements OnInit, AfterViewInit, OnDestroy {
       }
 
       this.completedRoutineIds.delete(routineId);
-      for (const exId of exIds) this.completedExerciseIds.delete(exId);
+      for (const exId of exIds) this.completedExerciseIds.delete(this.exKey(exId, routineId));
 
       try {
         const session = await this.storageService.getWorkoutSessionLocal(dateUS);
@@ -1069,7 +1069,7 @@ export class HomePage implements OnInit, AfterViewInit, OnDestroy {
         }
 
         for (const ex of this.todayExercises) {
-          if (ex.completed) this.completedExerciseIds.add(ex.exerciseId);
+          if (ex.completed) this.completedExerciseIds.add(this.exKey(ex.exerciseId, (ex as any).__routineId || ''));
         }
         
         // Calculate routine completion if not restored
@@ -1149,7 +1149,7 @@ export class HomePage implements OnInit, AfterViewInit, OnDestroy {
             this.completedExerciseIds.clear();
             this.completedRoutineIds.clear();
             for (const ex of this.todayExercises) {
-               this.completedExerciseIds.add(ex.exerciseId);
+               this.completedExerciseIds.add(this.exKey(ex.exerciseId, (ex as any).__routineId || ''));
                let rid = (ex as any).__routineId;
                if (!rid && (ex as any).__routineName) rid = 'name_ref:' + (ex as any).__routineName;
                if (rid) this.completedRoutineIds.add(rid);
@@ -1222,7 +1222,7 @@ export class HomePage implements OnInit, AfterViewInit, OnDestroy {
   getTrainingPrograms(): string[] {
     const set = new Set<string>();
     for (const ex of (this.todayExercises || [])) {
-      const p = this.getProgramNameForExercise(ex.exerciseId);
+      const p = this.getProgramNameForExercise(ex.exerciseId, (ex as any).__routineId);
       if (p) set.add(p);
     }
     return Array.from(set);
@@ -1230,7 +1230,7 @@ export class HomePage implements OnInit, AfterViewInit, OnDestroy {
   getTrainingRoutines(): string[] {
     const set = new Set<string>();
     for (const ex of (this.todayExercises || [])) {
-      const r = this.getRoutineNameForExercise(ex.exerciseId);
+      const r = this.getRoutineNameForExercise(ex.exerciseId, (ex as any).__routineId);
       if (r) set.add(r);
     }
     return Array.from(set);
@@ -1238,14 +1238,14 @@ export class HomePage implements OnInit, AfterViewInit, OnDestroy {
   private updateVisibleTodayExercises() {
     let list = Array.isArray(this.todayExercises) ? [...this.todayExercises] : [];
     if (this.selectedTrainingProgramFilter !== 'all') {
-      list = list.filter(ex => this.getProgramNameForExercise(ex.exerciseId) === this.selectedTrainingProgramFilter);
+      list = list.filter(ex => this.getProgramNameForExercise(ex.exerciseId, (ex as any).__routineId) === this.selectedTrainingProgramFilter);
     }
     if (this.selectedTrainingRoutineFilter !== 'all') {
-      list = list.filter(ex => this.getRoutineNameForExercise(ex.exerciseId) === this.selectedTrainingRoutineFilter);
+      list = list.filter(ex => this.getRoutineNameForExercise(ex.exerciseId, (ex as any).__routineId) === this.selectedTrainingRoutineFilter);
     }
     const seen = new Set<string>();
     const unique: typeof list = [];
-    for (const ex of list) { if (!seen.has(ex.exerciseId)) { seen.add(ex.exerciseId); unique.push(ex); } }
+    for (const ex of list) { const key = `${ex.exerciseId}:${(ex as any).__routineId || ''}`; if (!seen.has(key)) { seen.add(key); unique.push(ex); } }
     list = unique;
     this.visibleTodayExercises = list;
     this.storageService.getTrainingOrder(this.selectedDateUS).then(order => {
@@ -1317,9 +1317,10 @@ export class HomePage implements OnInit, AfterViewInit, OnDestroy {
     if (this.todayExercises && this.todayExercises.length > 0) {
       this.todayExercises.forEach(ex => {
         const hasSets = Array.isArray((ex as any).sets) && (ex as any).sets.length > 0;
-        if (hasSets || this.completedExerciseIds.has(ex.exerciseId)) {
+        const exKey = this.exKey(ex.exerciseId, (ex as any).__routineId || '');
+        if (hasSets || this.completedExerciseIds.has(exKey)) {
           ex.completed = true;
-          this.completedExerciseIds.add(ex.exerciseId);
+          this.completedExerciseIds.add(exKey);
         }
       });
     }
@@ -1412,12 +1413,12 @@ export class HomePage implements OnInit, AfterViewInit, OnDestroy {
         await this.storageService.saveWorkoutSessionLocal(this.selectedDateUS, start, end, dur, this.todayExercises, Array.from(this.completedRoutineIds));
         const totalLocal = await this.storageService.getWorkoutTotalDurationLocal(this.selectedDateUS);
         this.durationSeconds = totalLocal;
-        const allExIds: string[] = [];
+        const allExKeys: string[] = [];
         for (const r of (this.routinesToday as Routine[])) {
           const exs = (r.exercises || []) as RoutineExercise[];
-          for (const e of exs) { if (e.exerciseId) allExIds.push(e.exerciseId); }
+          for (const e of exs) { if (e.exerciseId) allExKeys.push(this.exKey(e.exerciseId, r.id)); }
         }
-        const allExercisesDone = allExIds.length > 0 && allExIds.every((id: string) => this.completedExerciseIds.has(id));
+        const allExercisesDone = allExKeys.length > 0 && allExKeys.every((key: string) => this.completedExerciseIds.has(key));
         this.dayCompleted = allExercisesDone && totalLocal > 0;
         if (await this.supabase.isAuthenticated()) {
           try {
@@ -1473,7 +1474,13 @@ export class HomePage implements OnInit, AfterViewInit, OnDestroy {
   openTrainingSelected() {
     this.completedExerciseIds.clear();
     const selected = this.filteredRoutinesToday().filter(r => this.selectedRoutineIds.has(r.id));
-    const exercises = selected.reduce((acc: RoutineExercise[], r: Routine) => acc.concat((r.exercises || []).slice().sort((a,b)=>(a.order||0)-(b.order||0)).map(ex => ({ ...ex, __routineId: r.id } as any))), [] as RoutineExercise[]);
+    // Always use store exercises (planned sets) instead of session-reconstructed exercises,
+    // which may have empty sets from a previous partial training session.
+    const storeRoutines = this.store.getState().routines || [];
+    const exercises = selected.reduce((acc: RoutineExercise[], r: Routine) => {
+      const storeRoutine = storeRoutines.find(sr => sr.id === r.id) || r;
+      return acc.concat((storeRoutine.exercises || []).slice().sort((a,b)=>(a.order||0)-(b.order||0)).map(ex => ({ ...ex, __routineId: r.id } as any)));
+    }, [] as RoutineExercise[]);
     const map = new Map<string, string>();
     const pmap = new Map<string, string>();
     const idMap = new Map<string, string>();
@@ -1484,7 +1491,7 @@ export class HomePage implements OnInit, AfterViewInit, OnDestroy {
     this.exerciseProgramNameMap = pmap;
     this.exerciseRoutineIdMap = idMap;
     this.todayExercises = exercises;
-    this.expandedIds = new Set<string>((this.todayExercises || []).map(ex => ex.exerciseId).filter((id: string) => !!id));
+    this.expandedIds = new Set<string>((this.todayExercises || []).map(ex => this.exKey(ex.exerciseId, (ex as any).__routineId || '')).filter((k: string) => !!k));
     this.activeRoutineIds = new Set<string>(selected.map(r => r.id));
     this.panelState = 'entering';
     this.showTraining = true;
@@ -1566,7 +1573,7 @@ export class HomePage implements OnInit, AfterViewInit, OnDestroy {
   getIncompleteExerciseNames(): string[] {
     try {
       const list = Array.isArray(this.todayExercises) ? this.todayExercises : [];
-      return list.filter(ex => !this.isExerciseCompleted(ex.exerciseId)).map(ex => (ex.exerciseName || this.translationService.translate('common.exercise')));
+      return list.filter(ex => !this.isExerciseCompleted(ex.exerciseId, (ex as any).__routineId || '')).map(ex => (ex.exerciseName || this.translationService.translate('common.exercise')));
     } catch { return []; }
   }
   getUnfinishedLabel(): string {
@@ -1578,7 +1585,12 @@ export class HomePage implements OnInit, AfterViewInit, OnDestroy {
   getEndTrainingText(): string {
     return this.translationService.translate('common.end_training');
   }
-  getRoutineNameForExercise(exerciseId: string): string {
+  getRoutineNameForExercise(exerciseId: string, routineIdHint?: string): string {
+    if (routineIdHint) {
+      const r = (this.routinesToday || []).find(rt => rt.id === routineIdHint)
+             || (this.store.getState().routines || []).find((rt: any) => rt.id === routineIdHint);
+      if (r) return r.name;
+    }
     if (this.exerciseRoutineNameMap.has(exerciseId)) return this.exerciseRoutineNameMap.get(exerciseId) || '';
 
     // Fallback: Try to find by ID if map fails
@@ -1607,7 +1619,12 @@ export class HomePage implements OnInit, AfterViewInit, OnDestroy {
     }
     return '';
   }
-  getProgramNameForExercise(exerciseId: string): string {
+  getProgramNameForExercise(exerciseId: string, routineIdHint?: string): string {
+    if (routineIdHint) {
+      const r = (this.routinesToday || []).find(rt => rt.id === routineIdHint)
+             || (this.store.getState().routines || []).find((rt: any) => rt.id === routineIdHint);
+      if (r) return (r as any).programName || '';
+    }
     if (this.exerciseProgramNameMap.has(exerciseId)) return this.exerciseProgramNameMap.get(exerciseId) || '';
 
     // Ensure routine is looked up first, which populates program map
@@ -1633,15 +1650,15 @@ export class HomePage implements OnInit, AfterViewInit, OnDestroy {
       this.store.setRoutines(updated);
     } catch {}
   }
-  isExpanded(exercise: RoutineExercise): boolean { return this.expandedIds.has(exercise?.exerciseId); }
+  isExpanded(exercise: RoutineExercise): boolean { return this.expandedIds.has(this.exKey(exercise?.exerciseId, (exercise as any)?.__routineId || '')); }
   toggleExercise(exercise: RoutineExercise) {
-    const id = exercise?.exerciseId;
-    if (!id) return;
-    const wasOpen = this.expandedIds.has(id);
+    const key = this.exKey(exercise?.exerciseId, (exercise as any)?.__routineId || '');
+    if (!exercise?.exerciseId) return;
+    const wasOpen = this.expandedIds.has(key);
     if (wasOpen) {
-      this.expandedIds.delete(id);
+      this.expandedIds.delete(key);
     } else {
-      this.expandedIds.add(id);
+      this.expandedIds.add(key);
       // Optimized: no scroll or measurements on toggle
     }
   }

@@ -210,7 +210,7 @@
           </button>
         </div>
         <div class="accordion-list" *ngIf="visibleTodayExercises.length > 0" cdkDropList [cdkDropListData]="visibleTodayExercises" [cdkDropListOrientation]="'vertical'" (cdkDropListDropped)="dropTrainingExercises($event)">
-          <div *ngFor="let exercise of visibleTodayExercises; let i = index; trackBy: trackByExerciseId" class="exercise-item glass-item" [class.completed]="isExerciseCompleted(exercise.exerciseId)" cdkDrag [cdkDragStartDelay]="{touch: 0, mouse: 0}" cdkDragLockAxis="y" [class.dragging]="draggingId===exercise.exerciseId" (cdkDragStarted)="onTrainDragStarted(exercise.exerciseId)" (cdkDragEnded)="onTrainDragEnded()" (cdkDragEntered)="onTrainDragEntered(i)" (cdkDragExited)="onTrainDragExited(i)" [class.drop-target]="hoverIndex===i" [class.slide-in]="panelState==='entering'" [attr.id]="'exercise-' + exercise.exerciseId">
+          <div *ngFor="let exercise of visibleTodayExercises; let i = index; trackBy: trackByExerciseId" class="exercise-item glass-item" [class.completed]="isExerciseCompleted(exercise.exerciseId, $any(exercise).__routineId)" cdkDrag [cdkDragStartDelay]="{touch: 0, mouse: 0}" cdkDragLockAxis="y" [class.dragging]="draggingId===exercise.exerciseId" (cdkDragStarted)="onTrainDragStarted(exercise.exerciseId)" (cdkDragEnded)="onTrainDragEnded()" (cdkDragEntered)="onTrainDragEntered(i)" (cdkDragExited)="onTrainDragExited(i)" [class.drop-target]="hoverIndex===i" [class.slide-in]="panelState==='entering'" [attr.id]="'exercise-' + exercise.exerciseId">
             <button type="button" class="accordion-header p-4" [class.border-b]="isExpanded(exercise)" (click)="toggleExercise(exercise)" [attr.aria-expanded]="isExpanded(exercise)" [attr.aria-controls]="'exercise-details-' + exercise.exerciseId">
               <div class="drag-strip" cdkDragHandle [attr.aria-label]="('common.drag_area' | translate)"></div>
               <div class="drag-handle" cdkDragHandle [attr.aria-label]="('common.drag_to_reorder' | translate)" (click)="$event.stopPropagation()" role="button" tabindex="0">
@@ -221,8 +221,8 @@
               <div class="accordion-text">
                 <div class="accordion-title">{{ exercise.exerciseName?.trim() ? exercise.exerciseName : ('common.exercise' | translate) }}</div>
                 <div class="accordion-subtitle">
-                  <span class="routine-tag title-chip">{{ getRoutineNameForExercise(exercise.exerciseId) }}</span>
-                  <span *ngIf="getProgramNameForExercise(exercise.exerciseId)" class="routine-tag program-chip" style="margin-top: 0px;">{{ getProgramNameForExercise(exercise.exerciseId) }}</span>
+                  <span class="routine-tag title-chip">{{ getRoutineNameForExercise(exercise.exerciseId, $any(exercise).__routineId) }}</span>
+                  <span *ngIf="getProgramNameForExercise(exercise.exerciseId, $any(exercise).__routineId)" class="routine-tag program-chip" style="margin-top: 0px;">{{ getProgramNameForExercise(exercise.exerciseId, $any(exercise).__routineId) }}</span>
                 </div>
               <div class="accordion-meta">
                   <span class="subtitle-label">{{ 'common.sets' | translate }}</span> <span class="subtitle-number">{{ getSets(exercise).length }}</span>
@@ -230,11 +230,11 @@
                 </div>
               </div>
               <div class="accordion-actions">
-                <ion-icon *ngIf="isExerciseCompleted(exercise.exerciseId)" name="checkmark" class="status-check"></ion-icon>
-                <div *ngIf="!isExerciseCompleted(exercise.exerciseId)" class="action-button select" (click)="completeExercise(exercise); $event.stopPropagation()" [attr.aria-label]="'home.finish_exercise' | translate" role="button" tabindex="0">
+                <ion-icon *ngIf="isExerciseCompleted(exercise.exerciseId, $any(exercise).__routineId)" name="checkmark" class="status-check"></ion-icon>
+                <div *ngIf="!isExerciseCompleted(exercise.exerciseId, $any(exercise).__routineId)" class="action-button select" (click)="completeExercise(exercise); $event.stopPropagation()" [attr.aria-label]="'home.finish_exercise' | translate" role="button" tabindex="0">
                   <ion-icon name="checkmark"></ion-icon>
                 </div>
-                <div *ngIf="isExerciseCompleted(exercise.exerciseId)" class="action-button repeat" (click)="repeatExercise(exercise); $event.stopPropagation()" [attr.aria-label]="'common.repeat' | translate" role="button" tabindex="0">
+                <div *ngIf="isExerciseCompleted(exercise.exerciseId, $any(exercise).__routineId)" class="action-button repeat" (click)="repeatExercise(exercise); $event.stopPropagation()" [attr.aria-label]="'common.repeat' | translate" role="button" tabindex="0">
                   <ion-icon name="refresh"></ion-icon>
                 </div>
                 <div class="accordion-toggle" aria-label="Toggle details" (click)="toggleExercise(exercise); $event.stopPropagation()" role="button" tabindex="0">
@@ -249,7 +249,7 @@
                   <ion-icon name="swap-vertical"></ion-icon>
                   <span class="sets-label">{{ 'common.sets' | translate }}</span>
                 </div>
-                <button class="modal-add-set-btn" [disabled]="((!showTraining && dayCompleted) || isExerciseCompleted(exercise.exerciseId))" (click)="addSet(exercise); $event.stopPropagation()" [attr.aria-label]="('common.add_set' | translate)">
+                <button class="modal-add-set-btn" [disabled]="((!showTraining && dayCompleted) || isExerciseCompleted(exercise.exerciseId, $any(exercise).__routineId))" (click)="addSet(exercise); $event.stopPropagation()" [attr.aria-label]="('common.add_set' | translate)">
                   <ion-icon name="add"></ion-icon>
                   <span>{{ 'common.add_set' | translate }}</span>
                 </button>
@@ -267,29 +267,29 @@
                     <tbody>
                       <tr *ngFor="let s of getSets(exercise); let si = index; trackBy: trackBySetIndex">
                         <td>
-                          <input type="number" inputmode="numeric" pattern="[0-9]*" [disabled]="((!showTraining && dayCompleted) || isExerciseCompleted(exercise.exerciseId))" [ngModel]="getDisplayValue(exercise, si, 'reps')" (ngModelChange)="updateSetValue(exercise, si, 'reps', $event)" (focus)="onInputFocus(exercise, si, 'reps')" (blur)="onInputBlur(exercise, si, 'reps')" min="0" max="200" step="1" class="sf-input" aria-label="Reps" />
+                          <input type="number" inputmode="numeric" pattern="[0-9]*" [disabled]="((!showTraining && dayCompleted) || isExerciseCompleted(exercise.exerciseId, $any(exercise).__routineId))" [ngModel]="getDisplayValue(exercise, si, 'reps')" (ngModelChange)="updateSetValue(exercise, si, 'reps', $event)" (focus)="onInputFocus(exercise, si, 'reps')" (blur)="onInputBlur(exercise, si, 'reps')" min="0" max="200" step="1" class="sf-input" aria-label="Reps" />
                         </td>
                         <td>
                           <div class="sf-combo">
-                          <input type="number" inputmode="decimal" [disabled]="((!showTraining && dayCompleted) || isExerciseCompleted(exercise.exerciseId))" [ngModel]="getDisplayValue(exercise, si, 'weight')" (ngModelChange)="updateSetValue(exercise, si, 'weight', $event)" (focus)="onInputFocus(exercise, si, 'weight')" (blur)="onInputBlur(exercise, si, 'weight')" min="0" max="1000" step="0.1" class="sf-input" aria-label="Weight" />
+                          <input type="number" inputmode="decimal" [disabled]="((!showTraining && dayCompleted) || isExerciseCompleted(exercise.exerciseId, $any(exercise).__routineId))" [ngModel]="getDisplayValue(exercise, si, 'weight')" (ngModelChange)="updateSetValue(exercise, si, 'weight', $event)" (focus)="onInputFocus(exercise, si, 'weight')" (blur)="onInputBlur(exercise, si, 'weight')" min="0" max="1000" step="0.1" class="sf-input" aria-label="Weight" />
                             <div class="unit-dd">
-                              <button class="unit-dd-btn" [disabled]="((!showTraining && dayCompleted) || isExerciseCompleted(exercise.exerciseId))" (click)="toggleUnitDropdown(exercise, si)" [attr.aria-expanded]="isUnitDropdownOpen(exercise, si)">
+                              <button class="unit-dd-btn" [disabled]="((!showTraining && dayCompleted) || isExerciseCompleted(exercise.exerciseId, $any(exercise).__routineId))" (click)="toggleUnitDropdown(exercise, si)" [attr.aria-expanded]="isUnitDropdownOpen(exercise, si)">
                                 <span class="label">{{ (s.unit || exercise.weightUnit)?.toUpperCase() }}</span>
                                 <ion-icon [name]="isUnitDropdownOpen(exercise, si) ? 'chevron-up' : 'chevron-down'"></ion-icon>
                               </button>
                               <div class="unit-dd-menu" [class.open]="isUnitDropdownOpen(exercise, si)" [attr.aria-hidden]="!isUnitDropdownOpen(exercise, si)">
-                              <button class="unit-dd-item" [disabled]="((!showTraining && dayCompleted) || isExerciseCompleted(exercise.exerciseId))" [class.selected]="(s.unit || exercise.weightUnit)==='kg'" [class.just-selected]="isUnitJustSelected(exercise, si)" (click)="setUnitForSet(exercise, si, 'kg')">{{ 'common.kg' | translate }}</button>
-                              <button class="unit-dd-item" [disabled]="((!showTraining && dayCompleted) || isExerciseCompleted(exercise.exerciseId))" [class.selected]="(s.unit || exercise.weightUnit)==='lb'" [class.just-selected]="isUnitJustSelected(exercise, si)" (click)="setUnitForSet(exercise, si, 'lb')">{{ 'common.lb' | translate }}</button>
+                              <button class="unit-dd-item" [disabled]="((!showTraining && dayCompleted) || isExerciseCompleted(exercise.exerciseId, $any(exercise).__routineId))" [class.selected]="(s.unit || exercise.weightUnit)==='kg'" [class.just-selected]="isUnitJustSelected(exercise, si)" (click)="setUnitForSet(exercise, si, 'kg')">{{ 'common.kg' | translate }}</button>
+                              <button class="unit-dd-item" [disabled]="((!showTraining && dayCompleted) || isExerciseCompleted(exercise.exerciseId, $any(exercise).__routineId))" [class.selected]="(s.unit || exercise.weightUnit)==='lb'" [class.just-selected]="isUnitJustSelected(exercise, si)" (click)="setUnitForSet(exercise, si, 'lb')">{{ 'common.lb' | translate }}</button>
                               </div>
                             </div>
                           </div>
                         </td>
                         <td>
-                          <input type="number" inputmode="numeric" pattern="[0-9]*" [disabled]="((!showTraining && dayCompleted) || isExerciseCompleted(exercise.exerciseId))" [ngModel]="getDisplayValue(exercise, si, 'rir')" (ngModelChange)="updateSetValue(exercise, si, 'rir', $event)" (focus)="onInputFocus(exercise, si, 'rir')" (blur)="onInputBlur(exercise, si, 'rir')" min="0" max="10" step="1" class="sf-input" aria-label="RIR" />
+                          <input type="number" inputmode="numeric" pattern="[0-9]*" [disabled]="((!showTraining && dayCompleted) || isExerciseCompleted(exercise.exerciseId, $any(exercise).__routineId))" [ngModel]="getDisplayValue(exercise, si, 'rir')" (ngModelChange)="updateSetValue(exercise, si, 'rir', $event)" (focus)="onInputFocus(exercise, si, 'rir')" (blur)="onInputBlur(exercise, si, 'rir')" min="0" max="10" step="1" class="sf-input" aria-label="RIR" />
                         </td>
                         <td>
                           <span *ngIf="isExtraSet(exercise, si)" class="extra-chip">{{ 'common.extra' | translate }}</span>
-                          <button class="exercise-trash-btn" [disabled]="((!showTraining && dayCompleted) || isExerciseCompleted(exercise.exerciseId))" (click)="removeSet(exercise, si)" [attr.aria-label]="'common.delete_set' | translate"><ion-icon name="trash"></ion-icon></button>
+                          <button class="exercise-trash-btn" [disabled]="((!showTraining && dayCompleted) || isExerciseCompleted(exercise.exerciseId, $any(exercise).__routineId))" (click)="removeSet(exercise, si)" [attr.aria-label]="'common.delete_set' | translate"><ion-icon name="trash"></ion-icon></button>
                         </td>
                     </tr>
                   </tbody>
@@ -345,7 +345,7 @@
                 <div class="notes-section section-spacing">
                   <label class="text-gray-400 text-xs">{{ 'common.notes' | translate }} ({{ 'common.optional' | translate }})</label>
                   <div class="notes-box">
-                    <textarea [disabled]="((!showTraining && dayCompleted) || isExerciseCompleted(exercise.exerciseId))" [(ngModel)]="exercise.notes" [placeholder]="'home.notes_placeholder' | translate" rows="3" class="notes-textarea" (change)="persistExercise(exercise)"></textarea>
+                    <textarea [disabled]="((!showTraining && dayCompleted) || isExerciseCompleted(exercise.exerciseId, $any(exercise).__routineId))" [(ngModel)]="exercise.notes" [placeholder]="'home.notes_placeholder' | translate" rows="3" class="notes-textarea" (change)="persistExercise(exercise)"></textarea>
                   </div>
                 </div>
               </div>
